@@ -10,40 +10,47 @@
   <link href="https://fonts.googleapis.com/css2?family=Kanit&family=Patrick+Hand&display=swap" rel="stylesheet">
 
   <style>
-    /* --- เอาสตายล์หน้าของคุณมาทั้งหมด --- */
+    /* --- Styling (เหมือนเดิมแต่เพิ่ม badge & cell style) --- */
     body { background-color: #FFF5EE; font-family: 'Kanit', sans-serif; }
-    h2 {
-      font-family: 'Patrick Hand', cursive;
-      font-size: 2.2rem;
-      color: #FF8C94;
-      text-align: center;
-      letter-spacing: 1px;
-      margin-bottom: 20px;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.05);
-      position: relative;
-    }
-    h2::before, h2::after { content: "🌻"; font-size:1.2rem; margin:0 8px; }
+    h2 { font-family: 'Patrick Hand', cursive; font-size:2.2rem; color:#FF8C94; text-align:center; margin-bottom:20px; text-shadow:1px 1px 3px rgba(0,0,0,0.05); }
+    h2::before, h2::after { content:"🌻"; font-size:1.2rem; margin:0 8px; }
 
-    .search-btn { background-color:#FFB6B9; border: none; color: white; font-weight:bold; border-radius:25px; box-shadow:0 4px 8px rgba(0,0,0,0.1); transition:0.3s ease; }
-    .search-btn:hover { background-color:#FF9AA2; transform:scale(1.03); }
+    .search-btn { background-color:#FFB6B9; border:none; color:#fff; font-weight:700; border-radius:25px; box-shadow:0 4px 8px rgba(0,0,0,0.1); transition:0.25s; }
+    .search-btn:hover { transform:scale(1.02); background-color:#FF9AA2; }
 
     .table-rounded { border-radius:15px; overflow:hidden; border:4px solid #FAC898; width:100%; background-color:#FFEDD5; }
     .table-bordered { border-collapse:collapse; }
-    .table-bordered th, .table-bordered td { border:1px solid #ddd; text-align:center; vertical-align:middle; }
-    .table-rounded th { background-color:#FAD5A5; color:#000; font-weight:700; letter-spacing:0.5px; }
+    .table-bordered th, .table-bordered td { border:1px solid #ddd; text-align:center; vertical-align:middle; padding:12px; }
+    .table-rounded th { background-color:#FAD5A5; color:#000; font-weight:700; }
     .table-rounded td { font-weight:300; font-size:1rem; }
-    .table-bordered td.text-start { text-align:left; }
     .table-rounded tbody tr:nth-child(odd) { background-color:#FFF2E1; }
     .table-rounded tbody tr:hover { background-color:#FFE9D0; }
-    .table-dark { background-color:#FFA500; }
-    .table-dark th { color:white; }
 
-    .status-box { border:4px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFF8E1; box-shadow:0 4px 10px rgba(0,0,0,0.1); margin-top:20px; }
+    /* Badge for status */
+    .status-badge {
+      display:inline-block;
+      padding:6px 12px;
+      border-radius:16px;
+      font-weight:600;
+      font-size:0.9rem;
+      box-shadow:0 2px 6px rgba(0,0,0,0.06);
+      color:#fff;
+      border: 0;
+    }
+
+    /* small helper for cell-text color when bg is dark */
+    .cell-text-dark { color:#111 !important; }
+    .cell-text-light { color:#fff !important; }
+
     .box-cute { border-radius:16px; box-shadow:0 6px 12px rgba(0,0,0,0.1); background-color:#FFF8F0; padding:20px; border:2px dashed #FDC5A5; }
     #statusBox { border:3px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFFAF0; box-shadow:0 4px 10px rgba(0,0,0,0.1); font-weight:bold; color:#333; font-size:0.99rem; }
+
     .log { white-space:pre-wrap; font-size:0.9rem; color:#333; margin-top:10px; }
 
-    @media (max-width:767px) { .table-rounded td, .table-rounded th { font-size:0.9rem; } }
+    /* Responsive tweaks */
+    @media (max-width:767px) {
+      .table-rounded td, .table-rounded th { padding:10px; font-size:0.95rem; }
+    }
   </style>
 </head>
 <body class="container mt-4">
@@ -73,101 +80,84 @@
   </div>
 
   <div id="output"></div>
-
   <div id="log" class="log" style="display:none"></div>
 
 <script>
-/* ================== CONFIG ==================
-   ใส่ค่า Sheet ID และชื่อ sheet (tab)
-   ให้แชร์ sheet เป็น "Anyone with the link" (Viewer)
-*/
-const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM'; // <-- ใส่ ID ของคุณแล้ว
-const SHEET_NAME = 'Sheet1';               // <-- ชื่อ tab ถ้าไม่เปลี่ยนก็ 'Sheet1'
-/* ============================================ */
+/* CONFIG */
+const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM';
+const SHEET_NAME = 'Sheet1';
 
-function showLoading(show){
-  document.getElementById('loading').style.display = show ? 'block' : 'none';
+/* Helpers */
+function showLoading(show){ document.getElementById('loading').style.display = show ? 'block' : 'none'; }
+function showLog(msg){ const el=document.getElementById('log'); el.style.display='block'; el.textContent += msg + '\n'; }
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function parseGVizText(text){ const start=text.indexOf('{'); const end=text.lastIndexOf('}'); if(start===-1||end===-1) throw new Error('Invalid gviz response'); return JSON.parse(text.substring(start,end+1)); }
+
+/* Color utility: determine readable text color */
+function pickTextColorOnBackground(bgColor) {
+  if(!bgColor) return '#fff';
+  // strip # and rgba
+  try {
+    if(bgColor.indexOf('rgba') === 0 || bgColor.indexOf('rgb') === 0) {
+      // parse rgb(a)
+      const nums = bgColor.replace(/[^\d,\.]/g,'').split(',');
+      const r = parseFloat(nums[0]), g = parseFloat(nums[1]), b = parseFloat(nums[2]);
+      const yiq = (r*299 + g*587 + b*114)/1000;
+      return yiq >= 128 ? '#111' : '#fff';
+    }
+    let c = bgColor.replace('#','').trim();
+    if(c.length === 3) c = c.split('').map(ch=>ch+ch).join('');
+    const r = parseInt(c.substr(0,2),16), g = parseInt(c.substr(2,2),16), b = parseInt(c.substr(4,2),16);
+    const yiq = (r*299 + g*587 + b*114)/1000;
+    return yiq >= 128 ? '#111' : '#fff';
+  } catch(e){ return '#fff'; }
 }
 
-function showLog(msg){
-  const el = document.getElementById('log');
-  el.style.display = 'block';
-  el.textContent += msg + '\n';
-}
-
-// parse gviz response text
-function parseGVizText(text){
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('Invalid gviz response');
-  const json = text.substring(start, end+1);
-  return JSON.parse(json);
-}
-
-// build object rows from gviz
-function normalizeHeaders(cols){
-  return cols.map(c => (c && c.label) ? c.label.toString().trim().toLowerCase() : '');
-}
-function rowToObj(row, headers){
-  const obj = {};
-  for (let i=0;i<headers.length;i++){
-    const key = headers[i] || ('col'+i);
-    const cell = row.c && row.c[i] ? row.c[i].v : '';
-    obj[key] = (cell === null || typeof cell === 'undefined') ? '' : String(cell);
-  }
-  return obj;
-}
-
-// fetch sheet via gviz
-async function fetchSheet(){
-  if (!SHEET_ID || SHEET_ID.includes('PUT_YOUR')) {
-    throw new Error('กรุณาใส่ SHEET_ID ในไฟล์ index.html');
-  }
+/* fetch and parse sheet */
+async function fetchSheet() {
+  if(!SHEET_ID) throw new Error('SHEET_ID not set');
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tqx=out:json`;
   const res = await fetch(url, {cache:'no-store'});
-  if (!res.ok) throw new Error('Network error: ' + res.status);
+  if(!res.ok) throw new Error('Network error: ' + res.status);
   const text = await res.text();
   return parseGVizText(text);
 }
 
-// map gviz -> array of rows
+/* convert gviz to rows */
+function normalizeHeaders(cols){ return cols.map(c => (c && c.label) ? c.label.toString().trim().toLowerCase() : ''); }
+function rowToObj(row, headers){
+  const obj = {};
+  for(let i=0;i<headers.length;i++){
+    const key = headers[i] || ('col'+i);
+    const cell = row.c && row.c[i] ? row.c[i].v : '';
+    obj[key] = (cell === null || typeof cell === 'undefined') ? '' : String(cell);
+  }
+  // also attach raw copy for convenience
+  return obj;
+}
 function buildRowsFromGviz(g){
   const headers = normalizeHeaders(g.table.cols || []);
-  const out = (g.table.rows || []).map(r => rowToObj(r, headers));
-  return { headers, rows: out };
+  const rows = (g.table.rows || []).map(r => rowToObj(r, headers));
+  return { headers, rows };
 }
 
-// UI helpers
-function displayError(msg){
+/* Rendering with styling from sheet.
+   - For each cell, check if the row contains a key <header>_bg or <header>_color or <header>_textcolor
+     e.g. if header is 'สถานะ' check 'สถานะ_bg' or 'สถานะ_color'
+   - For status badge, check 'status_color' or 'สถานะ_color' or 'status_bg'
+*/
+function renderResults(rows, headers) {
   showLoading(false);
-  document.getElementById('output').innerHTML = `
-    <div class="row justify-content-center">
-      <div class="col-8">
-        <div class='box-cute alert alert-danger text-center'>${escapeHtml(msg)}</div>
-      </div>
-    </div>`;
-}
-
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-function renderResults(rows){
-  showLoading(false);
-  if (!rows || rows.length === 0) {
-    document.getElementById('output').innerHTML = `
-      <div class="row justify-content-center">
-        <div class="col-4">
-          <div class='box-cute alert alert-warning text-center'>ไม่พบข้อมูลของบัญชีนี้ กรุณาตรวจสอบอีกครั้ง</div>
-        </div>
-      </div>`;
+  if(!rows || rows.length === 0) {
+    document.getElementById('output').innerHTML = `<div class="row justify-content-center"><div class="col-4"><div class='box-cute alert alert-warning text-center'>ไม่พบข้อมูลของบัญชีนี้ กรุณาตรวจสอบอีกครั้ง</div></div></div>`;
     return;
   }
 
-  // compute totals as in your original code
+  // compute totals (as before)
   let pickupTotal = 0, ecoShippingTotal = 0;
   rows.forEach(r=>{
     const statusText = (r['สถานะ'] || r['status'] || r['status_text'] || r['col8'] || '').toString();
-    // try to match phrase "ถึงไทยแล้ว"
-    if (statusText.includes('ถึงไทยแล้ว')) {
+    if(statusText.includes('ถึงไทยแล้ว')){
       const sendBack = parseFloat((r['ค่าส่งกลับไทย'] || r['sendback'] || r['col5'] || '').toString().replace(/,/g,'')) || 0;
       const eco = parseFloat((r['ค่าส่งไปร'] || r['eco'] || r['col6'] || '').toString().replace(/,/g,'')) || 0;
       pickupTotal += sendBack;
@@ -196,7 +186,19 @@ function renderResults(rows){
       </div>
     </div>`;
 
-  // build table
+  // header labels for the visible columns we want (you can adjust)
+  const visibleHeaders = [
+    headers[0] || 'col0', // แอค
+    headers[1] || 'col1', // ประเภท
+    headers[2] || 'col2', // รายการ
+    headers[3] || 'col3', // ราคา
+    headers[5] || 'col5', // ค่าส่งกลับไทย
+    headers[6] || 'col6', // ค่าส่งไปร
+    headers[10]|| 'col10',// เว็บส่ง
+    headers[8] || 'col8', // สถานะ
+    headers[9] || 'col9'  // เลขแทร็ค
+  ];
+
   let table = `<table class="table table-bordered table-rounded"><thead><tr>
       <th class="text-center">แอค</th>
       <th class="text-center">ประเภทสินค้า</th>
@@ -210,75 +212,83 @@ function renderResults(rows){
     </tr></thead><tbody>`;
 
   rows.forEach(r=>{
-    // try different header keys (Thai/Eng) — fallbacks to positional colN
-    const col = (k1,k2,k3,idx) => (r[k1]||r[k2]||r[k3]||r['col'+idx]||'');
-    table += `<tr>
-      <td class="text-center">${escapeHtml(col('แอค','account','user',0))}</td>
-      <td class="text-center">${escapeHtml(col('ประเภทสินค้า','type','category',1))}</td>
-      <td class="text-start">${escapeHtml(col('รายการของ','items','description',2))}</td>
-      <td class="text-center">${escapeHtml(col('ราคารอบแรก','price','amount',3))}</td>
-      <td class="text-center">${escapeHtml(col('ค่าส่งกลับไทย','sendback','col5',5))}</td>
-      <td class="text-center">${escapeHtml(col('ค่าส่งไปร','eco','col6',6))}</td>
-      <td class="text-center">${escapeHtml(col('เว็บส่ง','site','web',10))}</td>
-      <td class="text-center">${escapeHtml(col('สถานะ','status','status_text',8))}</td>
-      <td class="text-center">${escapeHtml(col('เลขแทร็ค','tracking','track',9))}</td>
-    </tr>`;
+    table += `<tr>`;
+    visibleHeaders.forEach((h, idx) => {
+      const headerKey = h; // already normalized
+      const rawVal = r[headerKey] || '';
+      // check for style override: e.g. headerKey + '_bg' or headerKey + '_color' or headerKey + '_textcolor'
+      const bgKey1 = headerKey + '_bg';
+      const bgKey2 = headerKey + '_color';
+      const textKey = headerKey + '_textcolor';
+      const bg = (r[bgKey1] || r[bgKey2] || '').trim();
+      const textColor = (r[textKey] || '').trim();
+      // Build cell content: for status column show badge
+      let cellHtml = escapeHtml(rawVal);
+      if(idx === 7) { // status column (8th)
+        // look for status badge color fields: status_color/status_bg/status_label
+        const statusText = rawVal || '';
+        const statusColor = (r['status_color'] || r['สถานะ_color'] || r['status_bg'] || r['สถานะ_bg'] || bg).trim() || '';
+        const statusLabel = (r['status_label'] || r['สถานะ_label'] || statusText).toString();
+        if(statusLabel) {
+          const textCol = textColor || pickTextColorOnBackground(statusColor);
+          const style = statusColor ? `background:${statusColor}; color:${textCol};` : `background:#d1d9ff; color:#0b2b6b;`;
+          cellHtml = `<span class="status-badge" style="${style}">${escapeHtml(statusLabel)}</span>`;
+        } else {
+          cellHtml = escapeHtml(statusText);
+        }
+      }
+      // finally add td with optional background
+      const tdStyle = bg ? ` style="background:${bg}; color:${textColor || ''}"` : '';
+      // if background is set and no explicit textColor, pick readable color for status badge not cell text
+      table += `<td${tdStyle}>${cellHtml}</td>`;
+    });
+    table += `</tr>`;
   });
 
   table += `</tbody></table>`;
   document.getElementById('output').innerHTML = summaryBox + table;
 }
 
-// main search handler: load sheet, filter by userId (matching column A)
+/* main search handler */
 async function handleSearch(){
   const uid = (document.getElementById('userId').value || '').trim().toLowerCase();
-  if (!uid) {
-    displayError('กรุณากรอกชื่อบัญชี Twitter ก่อน');
-    return;
-  }
+  if(!uid){ alert('กรุณากรอกชื่อบัญชี Twitter ก่อน'); return; }
   try {
     showLoading(true);
     document.getElementById('output').innerHTML = '';
     document.getElementById('log').style.display = 'none';
+
     const g = await fetchSheet();
     const { headers, rows } = buildRowsFromGviz(g);
-
-    // Determine the "username" column: try first header or common names
-    const headerNames = headers;
-    // map rows are already objects by header names; if headers empty then row keys are col0..colN
-    // Filter where first column (A) matches uid OR header named 'account' etc.
+    // filter rows by uid (matching first column or known keys)
+    const usernameCol = headers[0] || 'col0';
     const filtered = rows.filter(r => {
-      // try column A (col0), or common keys
       const candidates = [
-        r[headers[0]] || r['col0'] || r['account'] || r['user'] || r['username'] || r['แอค'] || r['แอค'],
-        r['account'] || r['user'] || r['username'] || r['ผู้ใช้'] || r['แอค'] || r['name']
+        (r[usernameCol] || ''),
+        (r['account'] || r['user'] || r['username'] || r['แอค'] || '')
       ];
-      for (let c of candidates) {
-        if (!c) continue;
+      for(const c of candidates){
+        if(!c) continue;
         const s = String(c).trim().toLowerCase();
-        if (s === uid) return true;
-        // allow with/without @
-        if (s === ('@' + uid)) return true;
-        if (('@'+s) === uid) return true;
+        if(s === uid) return true;
+        if(s === ('@'+uid)) return true;
+        if(('@'+s) === uid) return true;
       }
       return false;
     });
-
-    renderResults(filtered);
+    renderResults(filtered, headers);
     showLoading(false);
-    if (!filtered.length) showLog('ไม่พบข้อมูลสำหรับ: ' + uid);
-  } catch (e) {
+    if(!filtered.length) showLog('ไม่พบข้อมูลสำหรับ: ' + uid);
+  } catch(e){
     showLoading(false);
-    displayError('โหลดข้อมูลล้มเหลว: ' + (e && e.message ? e.message : e));
+    document.getElementById('output').innerHTML = `<div class='box-cute alert alert-danger text-center'>โหลดข้อมูลล้มเหลว: ${escapeHtml(e.message||e)}</div>`;
     showLog('error: ' + (e && e.stack ? e.stack : e));
   }
 }
 
-// wire events
+/* wire events */
 document.getElementById('searchBtn').addEventListener('click', handleSearch);
-document.getElementById('userId').addEventListener('keydown', function(e){
-  if (e.key === 'Enter') handleSearch();
-});
+document.getElementById('userId').addEventListener('keydown', function(e){ if(e.key === 'Enter') handleSearch(); });
 
 </script>
 </body>
