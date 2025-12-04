@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Status Update — ร้านของฉัน</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+  <style>
+    /* --- เอาสตายล์หน้าของคุณมาทั้งหมด --- */
+    body { background-color: #FFF5EE; font-family: 'Kanit', sans-serif; }
+    h2 {
+      font-family: 'Patrick Hand', cursive;
+      font-size: 2.2rem;
+      color: #FF8C94;
+      text-align: center;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    h2::before, h2::after { content: "🌻"; font-size:1.2rem; margin:0 8px; }
+
+    .search-btn { background-color:#FFB6B9; border: none; color: white; font-weight:bold; border-radius:25px; box-shadow:0 4px 8px rgba(0,0,0,0.1); transition:0.3s ease; }
+    .search-btn:hover { background-color:#FF9AA2; transform:scale(1.03); }
+
+    .table-rounded { border-radius:15px; overflow:hidden; border:4px solid #FAC898; width:100%; background-color:#FFEDD5; }
+    .table-bordered { border-collapse:collapse; }
+    .table-bordered th, .table-bordered td { border:1px solid #ddd; text-align:center; vertical-align:middle; }
+    .table-rounded th { background-color:#FAD5A5; color:#000; font-weight:700; letter-spacing:0.5px; }
+    .table-rounded td { font-weight:300; font-size:1rem; }
+    .table-bordered td.text-start { text-align:left; }
+    .table-rounded tbody tr:nth-child(odd) { background-color:#FFF2E1; }
+    .table-rounded tbody tr:hover { background-color:#FFE9D0; }
+    .table-dark { background-color:#FFA500; }
+    .table-dark th { color:white; }
+
+    .status-box { border:4px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFF8E1; box-shadow:0 4px 10px rgba(0,0,0,0.1); margin-top:20px; }
+    .box-cute { border-radius:16px; box-shadow:0 6px 12px rgba(0,0,0,0.1); background-color:#FFF8F0; padding:20px; border:2px dashed #FDC5A5; }
+    #statusBox { border:3px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFFAF0; box-shadow:0 4px 10px rgba(0,0,0,0.1); font-weight:bold; color:#333; font-size:0.99rem; }
+    .log { white-space:pre-wrap; font-size:0.9rem; color:#333; margin-top:10px; }
+
+    @media (max-width:767px) { .table-rounded td, .table-rounded th { font-size:0.9rem; } }
+  </style>
+</head>
+<body class="container mt-4">
+
+  <div class="row justify-content-center mb-4">
+    <div class="col-12 col-md-8" style="border:4px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFF8E1; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+      <h2 class="text-center" style="font-weight:700; color:#FFA500; font-family:'Arial',sans-serif;">Status Update</h2>
+
+      <div class="row justify-content-center mb-3">
+        <div class="col-12 col-md-6">
+          <input type="text" id="userId" class="form-control" placeholder="พิมพ์ชื่อ account twitter (@username)" style="text-align:center; border:none; padding:10px;">
+        </div>
+      </div>
+
+      <div class="row justify-content-center mb-3">
+        <div class="col-12 col-md-3">
+          <button class="btn search-btn w-100" id="searchBtn" style="border:none; padding:10px; background-color:#FAC898; color:#fff; font-weight:bold;">Search</button>
+        </div>
+      </div>
+
+      <div id="loading" class="text-center mt-3" style="display:none;">
+        <div class="spinner-border text-success" role="status"></div>
+        <p>กำลังค้นหา...</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="output"></div>
+
+  <div id="log" class="log" style="display:none"></div>
+
+<script>
+/* ================== CONFIG ==================
+   ใส่ค่า Sheet ID และชื่อ sheet (tab)
+   ให้แชร์ sheet เป็น "Anyone with the link" (Viewer)
+*/
+const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM'; // <-- ใส่ ID ของคุณแล้ว
+const SHEET_NAME = 'Sheet1';               // <-- ชื่อ tab ถ้าไม่เปลี่ยนก็ 'Sheet1'
+/* ============================================ */
+
+function showLoading(show){
+  document.getElementById('loading').style.display = show ? 'block' : 'none';
+}
+
+function showLog(msg){
+  const el = document.getElementById('log');
+  el.style.display = 'block';
+  el.textContent += msg + '\n';
+}
+
+// parse gviz response text
+function parseGVizText(text){
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new Error('Invalid gviz response');
+  const json = text.substring(start, end+1);
+  return JSON.parse(json);
+}
+
+// build object rows from gviz
+function normalizeHeaders(cols){
+  return cols.map(c => (c && c.label) ? c.label.toString().trim().toLowerCase() : '');
+}
+function rowToObj(row, headers){
+  const obj = {};
+  for (let i=0;i<headers.length;i++){
+    const key = headers[i] || ('col'+i);
+    const cell = row.c && row.c[i] ? row.c[i].v : '';
+    obj[key] = (cell === null || typeof cell === 'undefined') ? '' : String(cell);
+  }
+  return obj;
+}
+
+// fetch sheet via gviz
+async function fetchSheet(){
+  if (!SHEET_ID || SHEET_ID.includes('PUT_YOUR')) {
+    throw new Error('กรุณาใส่ SHEET_ID ในไฟล์ index.html');
+  }
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&tqx=out:json`;
+  const res = await fetch(url, {cache:'no-store'});
+  if (!res.ok) throw new Error('Network error: ' + res.status);
+  const text = await res.text();
+  return parseGVizText(text);
+}
+
+// map gviz -> array of rows
+function buildRowsFromGviz(g){
+  const headers = normalizeHeaders(g.table.cols || []);
+  const out = (g.table.rows || []).map(r => rowToObj(r, headers));
+  return { headers, rows: out };
+}
+
+// UI helpers
+function displayError(msg){
+  showLoading(false);
+  document.getElementById('output').innerHTML = `
+    <div class="row justify-content-center">
+      <div class="col-8">
+        <div class='box-cute alert alert-danger text-center'>${escapeHtml(msg)}</div>
+      </div>
+    </div>`;
+}
+
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderResults(rows){
+  showLoading(false);
+  if (!rows || rows.length === 0) {
+    document.getElementById('output').innerHTML = `
+      <div class="row justify-content-center">
+        <div class="col-4">
+          <div class='box-cute alert alert-warning text-center'>ไม่พบข้อมูลของบัญชีนี้ กรุณาตรวจสอบอีกครั้ง</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // compute totals as in your original code
+  let pickupTotal = 0, ecoShippingTotal = 0;
+  rows.forEach(r=>{
+    const statusText = (r['สถานะ'] || r['status'] || r['status_text'] || r['col8'] || '').toString();
+    // try to match phrase "ถึงไทยแล้ว"
+    if (statusText.includes('ถึงไทยแล้ว')) {
+      const sendBack = parseFloat((r['ค่าส่งกลับไทย'] || r['sendback'] || r['col5'] || '').toString().replace(/,/g,'')) || 0;
+      const eco = parseFloat((r['ค่าส่งไปร'] || r['eco'] || r['col6'] || '').toString().replace(/,/g,'')) || 0;
+      pickupTotal += sendBack;
+      ecoShippingTotal += (sendBack + eco);
+    }
+  });
+
+  const formatNumber = n => Math.round(n).toLocaleString('en-US');
+
+  const summaryBox = `
+    <div id="summaryStatusContainer" class="row justify-content-center mb-4">
+      <div class="col-12 col-md-4">
+        <div class="box-cute alert alert-info text-center" style="border:3px solid #FAC898; background-color:#FFFAF0; font-weight:bold;">
+          รวมยอดค่าส่ง:<br>
+          🔸 นัดรับ/ฝากของ: <span style="color:#E67300;">${formatNumber(pickupTotal)}</span> บาท<br>
+          🔸 ส่งไปร eco: <span style="color:#E67300;">${formatNumber(ecoShippingTotal)}</span> บาท<br>
+          📍หากเป็นพื้นที่พิเศษ อาจมีค่าบริการเพิ่มเติม 15 บาท
+        </div>
+      </div>
+
+      <div id="statusBox" class="col-12 col-md-4" style="border:3px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFFAF0;">
+        <p>💌 ค่าส่งกลับไทยและในประเทศสามารถโอนได้ที่</p>
+        <p>กุลิสรา จินดา</p>
+        <p>🔶 กสิกร (Kbank) 070-8-99869-9</p>
+        <p>หลังโอน กรุณาแนบสลิป และระบุชื่อ-ที่อยู่-เบอร์โทร ผ่าน <a href="https://forms.gle/RisnJ8y8hFnL4d2Z7" target="_blank">ลิงก์นี้</a></p>
+      </div>
+    </div>`;
+
+  // build table
+  let table = `<table class="table table-bordered table-rounded"><thead><tr>
+      <th class="text-center">แอค</th>
+      <th class="text-center">ประเภทสินค้า</th>
+      <th class="text-center">รายการของ</th>
+      <th class="text-center">ราคารอบแรก</th>
+      <th class="text-center">ค่าส่งกลับไทย</th>
+      <th class="text-center">ค่าส่งไปร</th>
+      <th class="text-center">เว็บส่ง</th>
+      <th class="text-center">สถานะของ</th>
+      <th class="text-center">เลขแทร็ค</th>
+    </tr></thead><tbody>`;
+
+  rows.forEach(r=>{
+    // try different header keys (Thai/Eng) — fallbacks to positional colN
+    const col = (k1,k2,k3,idx) => (r[k1]||r[k2]||r[k3]||r['col'+idx]||'');
+    table += `<tr>
+      <td class="text-center">${escapeHtml(col('แอค','account','user',0))}</td>
+      <td class="text-center">${escapeHtml(col('ประเภทสินค้า','type','category',1))}</td>
+      <td class="text-start">${escapeHtml(col('รายการของ','items','description',2))}</td>
+      <td class="text-center">${escapeHtml(col('ราคารอบแรก','price','amount',3))}</td>
+      <td class="text-center">${escapeHtml(col('ค่าส่งกลับไทย','sendback','col5',5))}</td>
+      <td class="text-center">${escapeHtml(col('ค่าส่งไปร','eco','col6',6))}</td>
+      <td class="text-center">${escapeHtml(col('เว็บส่ง','site','web',10))}</td>
+      <td class="text-center">${escapeHtml(col('สถานะ','status','status_text',8))}</td>
+      <td class="text-center">${escapeHtml(col('เลขแทร็ค','tracking','track',9))}</td>
+    </tr>`;
+  });
+
+  table += `</tbody></table>`;
+  document.getElementById('output').innerHTML = summaryBox + table;
+}
+
+// main search handler: load sheet, filter by userId (matching column A)
+async function handleSearch(){
+  const uid = (document.getElementById('userId').value || '').trim().toLowerCase();
+  if (!uid) {
+    displayError('กรุณากรอกชื่อบัญชี Twitter ก่อน');
+    return;
+  }
+  try {
+    showLoading(true);
+    document.getElementById('output').innerHTML = '';
+    document.getElementById('log').style.display = 'none';
+    const g = await fetchSheet();
+    const { headers, rows } = buildRowsFromGviz(g);
+
+    // Determine the "username" column: try first header or common names
+    const headerNames = headers;
+    // map rows are already objects by header names; if headers empty then row keys are col0..colN
+    // Filter where first column (A) matches uid OR header named 'account' etc.
+    const filtered = rows.filter(r => {
+      // try column A (col0), or common keys
+      const candidates = [
+        r[headers[0]] || r['col0'] || r['account'] || r['user'] || r['username'] || r['แอค'] || r['แอค'],
+        r['account'] || r['user'] || r['username'] || r['ผู้ใช้'] || r['แอค'] || r['name']
+      ];
+      for (let c of candidates) {
+        if (!c) continue;
+        const s = String(c).trim().toLowerCase();
+        if (s === uid) return true;
+        // allow with/without @
+        if (s === ('@' + uid)) return true;
+        if (('@'+s) === uid) return true;
+      }
+      return false;
+    });
+
+    renderResults(filtered);
+    showLoading(false);
+    if (!filtered.length) showLog('ไม่พบข้อมูลสำหรับ: ' + uid);
+  } catch (e) {
+    showLoading(false);
+    displayError('โหลดข้อมูลล้มเหลว: ' + (e && e.message ? e.message : e));
+    showLog('error: ' + (e && e.stack ? e.stack : e));
+  }
+}
+
+// wire events
+document.getElementById('searchBtn').addEventListener('click', handleSearch);
+document.getElementById('userId').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') handleSearch();
+});
+
+</script>
+</body>
+</html>
