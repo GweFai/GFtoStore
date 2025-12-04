@@ -106,18 +106,11 @@ async function fetchGviz(sheetName) {
 function buildStatusColorMapFromRows(rows) {
   const map = {};
   (rows || []).forEach(r => {
-    // r typically is an array from gviz table rows: r.c[0].v, r.c[1].v
-    // But we'll handle if passed as array-of-arrays or array-of-objects; here we assume array-of-arrays
-    if(Array.isArray(r)) {
-      const s = (r[0] || '').toString().trim();
-      const c = (r[1] || '').toString().trim();
-      if(s) map[s] = c || '#eaeaea';
-    } else if(typeof r === 'object') {
-      // if we passed parsed rows as objects (optional)
-      const keys = Object.keys(r);
-      const s = r[keys[0]] || '';
-      const c = r[keys[1]] || '';
-      if(s) map[s.toString().trim()] = (c||'#eaeaea').toString().trim();
+    if (!Array.isArray(r)) return;
+    const status = (r[0] || '').toString().trim();
+    const color = (r[1] || '').toString().trim();
+    if (status) {
+      map[status] = color || '#eaeaea';
     }
   });
   return map;
@@ -157,14 +150,47 @@ function buildRowsFromGvizObj(g){
   return { headers, rows };
 }
 
+function findMappedColorForStatus(statusText, statusColorMap) {
+  if (!statusText) return null;
+  const txt = statusText.toString().trim();
+  if (!txt) return null;
+
+  // 1) exact match (case-sensitive and case-insensitive fallback)
+  if (statusColorMap[txt]) return statusColorMap[txt];
+  const lowerToKey = {};
+  for (const k of Object.keys(statusColorMap)) lowerToKey[k.toLowerCase()] = k;
+  const low = txt.toLowerCase();
+  if (lowerToKey[low]) return statusColorMap[lowerToKey[low]];
+
+  // 2) substring match: find all keys that appear in txt (case-insensitive)
+  const matches = [];
+  for (const key of Object.keys(statusColorMap)) {
+    if (!key) continue;
+    try {
+      if (txt.toLowerCase().indexOf(key.toLowerCase()) !== -1) {
+        matches.push(key);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  if (matches.length === 0) return null;
+
+  // prefer the longest key (more specific)
+  matches.sort((a, b) => b.length - a.length);
+  return statusColorMap[matches[0]];
+}
+
 /* Render status badge using mapping */
 function renderStatusBadge(text, statusColorMap) {
-  if(!text) return '';
+  if (!text) return '';
   const label = String(text).trim();
-  const mappedColor = statusColorMap && (statusColorMap[label] || statusColorMap[label.toString().trim()]);
-  const bg = mappedColor || '#e6e6e6';
-  const txt = pickTextColorOnBackground(bg);
-  return `<span class="status-badge" style="background:${bg}; color:${txt}">${escapeHtml(label)}</span>`;
+  // find mapped color (exact or substring)
+  const mapped = findMappedColorForStatus(label, statusColorMap);
+  const bg = mapped || '#e6e6e6';
+  const txtColor = pickTextColorOnBackground(bg);
+  return `<span class="status-badge" style="background:${bg}; color:${txtColor}">${escapeHtml(label)}</span>`;
 }
 
 /* Render results table using color map */
