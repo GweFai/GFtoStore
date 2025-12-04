@@ -87,52 +87,43 @@
 
     .preserve-newlines { white-space: pre-line; text-align: left; }
 
-    .info-card {
+      .info-card {
     border: 3px solid #FAC898;
-    background-color: #FFFAF0; /* same warm pale background */
+    background-color: #FFFAF0; /* warm pale background */
     padding: 18px;
     border-radius: 12px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    /* <-- เปลี่ยนสีตัวอักษรที่นี่ให้เหมือนกันทั้งสองกล่อง --> */
+    color: #0f172a;          /* <- main text color (คุณขอให้เปลี่ยน) */
     font-weight: 600;
-    color: #1f2937;
-  }
-
-      /* small visual variations if needed */
-  .info-card--left { /* summary box left */
-    /* keep same, you can override here if want */
-  }
-  .info-card--right { /* bank/contact box right */
-    /* keep same or small differences */
   }
   
-  /* text inside (smaller paragraphs) */
+  /* ให้ทุกย่อหน้าภายในใช้สีเดียวกันและน้ำหนักแบบที่อ่านง่าย */
   .info-card p {
     margin: 6px 0;
+    color: inherit;         /* ใช้สีเดียวกับ .info-card */
     font-weight: 600;
-    color: #0f172a;
     line-height: 1.4;
     font-size: 0.95rem;
   }
   
-  /* small orange diamond bullet */
-  .info-card .diamond {
-    display:inline-block;
-    margin-right:6px;
-    color:#E67300;
-    font-weight:700;
+  /* ลิงก์ข้างในกล่องให้เป็นสีน้ำเงินแบบเด่น (อยากเปลี่ยนสีอื่นบอกได้) */
+  .info-card a {
+    color: #0b74de;
+    text-decoration: underline;
   }
   
-  /* responsive layout tweak (keeps boxes same height in row) */
+  /* ปรับไอคอน/emoji สีถ้าต้องการให้คอนทราสต์กับข้อความ */
+  .info-card .diamond { color: #E67300; margin-right:6px; }
+  
+  /* layout helpers (flex row) */
   .summary-row {
     display:flex;
     gap: 20px;
     align-items: stretch;
     flex-wrap:wrap;
   }
-  .summary-row .col-box {
-    flex:1 1 320px; /* grow/shrink, min width */
-    min-width: 260px;
-  }
+  .summary-row .col-box { flex:1 1 320px; min-width:260px; }
 
     @media (max-width: 767px) {
       .table-rounded td, .table-rounded th { padding: 10px; font-size: 0.95rem; }
@@ -349,7 +340,7 @@ function renderResults(rows, headers, statusColorMap){
 
   const formatNumber = n => Math.round(n).toLocaleString('en-US');
 
-const summaryBox = `
+  const summaryBox = `
   <div id="summaryStatusContainer" class="row justify-content-center mb-4">
     <div class="col-12">
       <div class="summary-row">
@@ -376,6 +367,7 @@ const summaryBox = `
     </div>
   </div>
 `;
+
 
   // decide visible headers (robust: fallback to positions)
   const visibleHeaders = [
