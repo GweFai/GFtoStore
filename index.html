@@ -105,14 +105,23 @@ async function fetchGviz(sheetName) {
 */
 function buildStatusColorMapFromRows(rows) {
   const map = {};
-  (rows || []).forEach(r => {
-    if (!Array.isArray(r)) return;
-    const status = (r[0] || '').toString().trim();
-    const color = (r[1] || '').toString().trim();
-    if (status) {
-      map[status] = color || '#eaeaea';
-    }
-  });
+  if (!rows || !rows.length) return map;
+
+  // ถ้าค่าบนสุดดูเหมือน header (เช่น คำว่า "สถานะ" หรือ "status") ให้ข้ามแถวแรก
+  const firstRow = rows[0];
+  const maybeHeader = (firstRow[0] || '').toString().toLowerCase();
+  const isHeader = maybeHeader.includes('สถานะ') || maybeHeader.includes('status') || maybeHeader.includes('สี');
+
+  const startIdx = isHeader ? 1 : 0;
+  for (let i = startIdx; i < rows.length; i++) {
+    const r = rows[i];
+    if (!Array.isArray(r)) continue;
+    const rawKey = (r[0] || '').toString().trim();
+    const rawColor = (r[1] || '').toString().trim();
+    if (!rawKey) continue;           // ไม่มีคีย์ข้าม
+    if (!rawColor) continue;         // ถ้าไม่มีค่าสี ให้ข้าม (ลดการแมพผิด)
+    map[rawKey] = rawColor;
+  }
   return map;
 }
 
