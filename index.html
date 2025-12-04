@@ -137,6 +137,7 @@
 const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM'; // data sheet id (keep as-is)
 const DATA_SHEET_NAME = 'Search';     // ชื่อแท็บข้อมูลหลัก
 const STATUS_SHEET_NAME = 'status สี'; // ชื่อแท็บที่เก็บ mapping สถานะ => HEX color
+const DATA_SHEET_GID = '0';   
 /* ============================== */
 
 /* --- Helpers --- */
@@ -178,6 +179,79 @@ async function fetchGviz(sheetName){
   if(!res.ok) throw new Error('Network error: ' + res.status);
   const txt = await res.text();
   return parseGVizText(txt);
+}
+
+/* --- CSV fetch & parse fallback --- */
+async function fetchCsvByGid(gid) {
+  if (!gid) throw new Error('DATA_SHEET_GID not configured');
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error('CSV fetch failed: ' + res.status);
+  const txt = await res.text();
+  return parseCsvToRows(txt);
+}
+
+// naive but robust CSV parser: handles quoted fields and newlines
+function parseCsvToRows(csvText) {
+  const rows = [];
+  let cur = [];
+  let curCell = '';
+  let inQuotes = false;
+  for (let i = 0; i < csvText.length; i++) {
+    const ch = csvText[i];
+    const next = csvText[i+1];
+    if (ch === '"') {
+      if (inQuotes && next === '"') {
+        curCell += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (ch === ',' && !inQuotes) {
+      cur.push(curCell);
+      curCell = '';
+      continue;
+    }
+    if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (ch === '\r' && csvText[i+1] === '\n') { /* skip next in loop */ }
+      cur.push(curCell);
+      rows.push(cur);
+      cur = [];
+      curCell = '';
+      if (ch === '\r' && csvText[i+1] === '\n') i++;
+      continue;
+    }
+    curCell += ch;
+  }
+  if (curCell.length > 0 || cur.length > 0) {
+    cur.push(curCell);
+    rows.push(cur);
+  }
+  return rows;
+}
+
+function csvRowsToObjects(csvRows) {
+  if (!csvRows || csvRows.length === 0) return { headers: [], rows: [] };
+  let headerRowIndex = 0;
+  while (headerRowIndex < csvRows.length && csvRows[headerRowIndex].every(c => (c||'').toString().trim() === '')) headerRowIndex++;
+  const headerRow = (csvRows[headerRowIndex] || []).map(h => (h || '').toString().trim());
+  const dataRows = [];
+  for (let i = headerRowIndex + 1; i < csvRows.length; i++) {
+    const r = csvRows[i];
+    if (!r || r.every(c => (c||'').toString().trim() === '')) continue;
+    const obj = {};
+    for (let j = 0; j < headerRow.length; j++) {
+      const key = headerRow[j] || ('col'+j);
+      obj[key] = (r[j] !== undefined && r[j] !== null) ? String(r[j]) : '';
+    }
+    for (let j = headerRow.length; j < r.length; j++) {
+      obj['col' + j] = (r[j] !== undefined && r[j] !== null) ? String(r[j]) : '';
+    }
+    dataRows.push(obj);
+  }
+  return { headers: headerRow, rows: dataRows };
 }
 
 /* --- Convert gviz to simple arrays --- */
@@ -393,24 +467,38 @@ async function handleSearch() {
     document.getElementById('log').style.display = 'none';
     document.getElementById('log').textContent = '';
 
-    // Fetch both sheets in parallel
-    console.log('Fetching data sheet:', DATA_SHEET_NAME, 'and status sheet:', STATUS_SHEET_NAME);
-    const [dataG, statusG] = await Promise.all([
-      fetchGviz(DATA_SHEET_NAME),
-      fetchGviz(STATUS_SHEET_NAME)
-    ]);
+     // fetch status map first
+    let statusColorMap = {};
+    try {
+      const statusG = await fetchGviz(STATUS_SHEET_NAME);
+      const statusRows = gvizToArrayRows(statusG).rows;
+      statusColorMap = buildStatusColorMapFromRows(statusRows);
+      showLog('Loaded status mapping (' + Object.keys(statusColorMap).length + ' keys)');
+    } catch (e) {
+      console.warn('Failed to load status sheet via gviz:', e && e.message);
+      showLog('Failed to load status sheet: ' + (e && e.message));
+    }
 
-    // Build status color map
-    const statusRows = gvizToArrayRows(statusG).rows; // array-of-arrays
-    console.log('statusRows (raw):', statusRows);
-
-    const statusColorMap = buildStatusColorMapFromRows(statusRows);
-    console.log('statusColorMap:', statusColorMap);
-
-    // Build data rows
-    const { headers, rows } = buildRowsFromGvizObj(dataG);
-    console.log('data headers:', headers);
-    console.log('data rows count:', rows.length);
+    // attempt gviz for data
+    let headers = [], rows = [];
+    let usedGviz = false;
+    try {
+      const dataG = await fetchGviz(DATA_SHEET_NAME);
+      const tmp = buildRowsFromGvizObj(dataG);
+      headers = tmp.headers;
+      rows = tmp.rows;
+      if (!rows || rows.length === 0) throw new Error('gviz returned no rows (possibly filtered)');
+      usedGviz = true;
+      showLog('Using GViz for data (rows=' + rows.length + ')');
+    } catch (gvizErr) {
+      showLog('GViz read failed or returned no rows — fallback to CSV (gid=' + DATA_SHEET_GID + ')');
+      // fallback CSV
+      const csvRows = await fetchCsvByGid(DATA_SHEET_GID);
+      const csvObj = csvRowsToObjects(csvRows);
+      headers = csvObj.headers;
+      rows = csvObj.rows;
+      showLog('Loaded CSV fallback (rows=' + rows.length + ')');
+    }
 
     // Filter rows by uid (robust candidates)
     const usernameCol = headers[0] || 'col0';
