@@ -87,6 +87,53 @@
 
     .preserve-newlines { white-space: pre-line; text-align: left; }
 
+    .info-card {
+    border: 3px solid #FAC898;
+    background-color: #FFFAF0; /* same warm pale background */
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+      /* small visual variations if needed */
+  .info-card--left { /* summary box left */
+    /* keep same, you can override here if want */
+  }
+  .info-card--right { /* bank/contact box right */
+    /* keep same or small differences */
+  }
+  
+  /* text inside (smaller paragraphs) */
+  .info-card p {
+    margin: 6px 0;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.4;
+    font-size: 0.95rem;
+  }
+  
+  /* small orange diamond bullet */
+  .info-card .diamond {
+    display:inline-block;
+    margin-right:6px;
+    color:#E67300;
+    font-weight:700;
+  }
+  
+  /* responsive layout tweak (keeps boxes same height in row) */
+  .summary-row {
+    display:flex;
+    gap: 20px;
+    align-items: stretch;
+    flex-wrap:wrap;
+  }
+  .summary-row .col-box {
+    flex:1 1 320px; /* grow/shrink, min width */
+    min-width: 260px;
+  }
+
     @media (max-width: 767px) {
       .table-rounded td, .table-rounded th { padding: 10px; font-size: 0.95rem; }
     }
@@ -302,24 +349,33 @@ function renderResults(rows, headers, statusColorMap){
 
   const formatNumber = n => Math.round(n).toLocaleString('en-US');
 
-  const summaryBox = `
-    <div id="summaryStatusContainer" class="row justify-content-center mb-4">
-      <div class="col-12 col-md-4">
-        <div class="box-cute alert alert-info text-center" style="border:3px solid #FAC898; background-color:#FFFAF0; font-weight:bold;">
-          รวมยอดค่าส่ง:<br>
-          🔸 นัดรับ/ฝากของ: <span style="color:#E67300;">${formatNumber(pickupTotal)}</span> บาท<br>
-          🔸 ส่งไปร eco: <span style="color:#E67300;">${formatNumber(ecoShippingTotal)}</span> บาท<br>
-          📍หากเป็นพื้นที่พิเศษ อาจมีค่าบริการเพิ่มเติม 15 บาท
+const summaryBox = `
+  <div id="summaryStatusContainer" class="row justify-content-center mb-4">
+    <div class="col-12">
+      <div class="summary-row">
+        <div class="col-box">
+          <div class="info-card info-card--left text-center">
+            <p style="font-weight:800; color:#0f172a; margin-bottom:8px;">รวมยอดค่าส่ง:</p>
+            <p><span class="diamond">🔸</span> นัดรับ/ฝากของ: <span style="color:#E67300;">${formatNumber(pickupTotal)}</span> บาท</p>
+            <p><span class="diamond">🔸</span> ส่งไปร eco: <span style="color:#E67300;">${formatNumber(ecoShippingTotal)}</span> บาท</p>
+            <p style="margin-top:8px; font-weight:600; color:#0f172a;">📍 หากเป็นพื้นที่พิเศษ อาจมีค่าบริการเพิ่มเติม 15 บาท</p>
+          </div>
+        </div>
+
+        <div class="col-box">
+          <div class="info-card info-card--right">
+            <p style="font-weight:800; color:#0f172a; margin-bottom:8px;">💌 ค่าส่งกลับไทยและในประเทศสามารถโอนได้ที่</p>
+            <p style="font-weight:700;">กุลิสรา จินดา</p>
+            <p><span class="diamond">🔶</span> กสิกร (Kbank) 070-8-99869-9</p>
+            <p style="margin-top:8px; font-weight:500; color:#0b74de;">
+              หลังโอน กรุณาแนบสลิป และระบุชื่อ-ที่อยู่-เบอร์โทร ผ่าน <a href="https://forms.gle/RisnJ8y8hFnL4d2Z7" target="_blank">ลิงก์นี้</a>
+            </p>
+          </div>
         </div>
       </div>
-      <div id="statusBox" class="col-12 col-md-4" style="border:3px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFFAF0;">
-        <p>💌 ค่าส่งกลับไทยและในประเทศสามารถโอนได้ที่</p>
-        <p>กุลิสรา จินดา</p>
-        <p>🔶 กสิกร (Kbank) 070-8-99869-9</p>
-        <p>หลังโอน กรุณาแนบสลิป และระบุชื่อ-ที่อยู่-เบอร์โทร ผ่าน <a href="https://forms.gle/RisnJ8y8hFnL4d2Z7" target="_blank">ลิงก์นี้</a></p>
-      </div>
     </div>
-  `;
+  </div>
+`;
 
   // decide visible headers (robust: fallback to positions)
   const visibleHeaders = [
