@@ -139,7 +139,7 @@ const STATUS_SHEET_NAME = 'status สี'; // ชื่อแท็บที่�
 
 /* --- Helpers --- */
 function showLoading(show){ document.getElementById('loading').style.display = show ? 'block' : 'none'; }
-function showLog(msg){ const el=document.getElementById('log'); el.style.display='block'; el.textContent += msg + '\n'; }
+// function showLog(msg){ const el=document.getElementById('log'); el.style.display='block'; el.textContent += msg + '\n'; }
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function parseGVizText(text){
   const start = text.indexOf('{');
@@ -380,7 +380,6 @@ async function handleSearch() {
 
     // Fetch both sheets in parallel
     console.log('Fetching data sheet:', DATA_SHEET_NAME, 'and status sheet:', STATUS_SHEET_NAME);
-    showLog(`Fetching sheet: ${DATA_SHEET_NAME} and status mapping: ${STATUS_SHEET_NAME} ...`);
     const [dataG, statusG] = await Promise.all([
       fetchGviz(DATA_SHEET_NAME),
       fetchGviz(STATUS_SHEET_NAME)
@@ -389,17 +388,14 @@ async function handleSearch() {
     // Build status color map
     const statusRows = gvizToArrayRows(statusG).rows; // array-of-arrays
     console.log('statusRows (raw):', statusRows);
-    showLog('statusRows length: ' + statusRows.length);
 
     const statusColorMap = buildStatusColorMapFromRows(statusRows);
     console.log('statusColorMap:', statusColorMap);
-    showLog('statusColorMap keys: ' + Object.keys(statusColorMap).join(', '));
 
     // Build data rows
     const { headers, rows } = buildRowsFromGvizObj(dataG);
     console.log('data headers:', headers);
     console.log('data rows count:', rows.length);
-    showLog('data rows count: ' + rows.length);
 
     // Filter rows by uid (robust candidates)
     const usernameCol = headers[0] || 'col0';
@@ -419,7 +415,6 @@ async function handleSearch() {
     });
 
     console.log('filtered rows count:', filtered.length);
-    showLog('filtered rows count: ' + filtered.length);
 
     // Render table
     renderResults(filtered, headers, statusColorMap);
@@ -427,7 +422,6 @@ async function handleSearch() {
   } catch (err) {
     console.error('handleSearch error', err);
     document.getElementById('output').innerHTML = `<div class='box-cute alert alert-danger text-center'>โหลดข้อมูลล้มเหลว: ${escapeHtml(err && err.message ? err.message : err)}</div>`;
-    showLog('error: ' + (err && err.stack ? err.stack : err));
   } finally {
     showLoading(false);
   }
