@@ -85,6 +85,8 @@
 
     .log { white-space: pre-wrap; font-size: 0.9rem; color: #333; margin-top: 10px; }
 
+    .preserve-newlines { white-space: pre-line; text-align: left; }
+
     @media (max-width: 767px) {
       .table-rounded td, .table-rounded th { padding: 10px; font-size: 0.95rem; }
     }
@@ -344,21 +346,32 @@ function renderResults(rows, headers, statusColorMap){
       <th class="text-center">เลขแทร็ค</th>
     </tr></thead><tbody>`;
 
-  rows.forEach(r => {
-    table += '<tr>';
-    visibleHeaders.forEach((h, idx) => {
-      const val = r[h] || '';
-      if(idx === 7){
-        table += `<td class="text-center">${renderStatusBadge(val, statusColorMap)}</td>`;
-      } else {
-        table += `<td class="${idx===2 ? 'text-start' : ''}">${escapeHtml(val)}</td>`;
-      }
-    });
-    table += '</tr>';
-  });
+    rows.forEach(r => {
+      table += '<tr>';
+      visibleHeaders.forEach((h, idx) => {
+        const val = r[h] || '';
+    
+        if (idx === 7) {
+          // สถานะ (badge)
+          table += `<td class="text-center">${renderStatusBadge(val, statusColorMap)}</td>`;
+          return;
+        }
+    
+        if (idx === 2) {
+          // คอลัมน์ "รายการของ" — แสดง newlines ตามต้นฉบับ (ปลอดภัยด้วย escapeHtml)
+          const safe = escapeHtml(val);
+          table += `<td class="preserve-newlines">${safe}</td>`;
+          return;
+        }
+    
+        // ช่องปกติ
+        table += `<td class="${idx === 2 ? 'text-start' : ''}">${escapeHtml(val)}</td>`;
+      });
+      table += '</tr>';
+});
 
-  table += '</tbody></table>';
-  document.getElementById('output').innerHTML = summaryBox + table;
+table += '</tbody></table>';
+document.getElementById('output').innerHTML = summaryBox + table;
 }
 </script>
 <script>
