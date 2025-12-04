@@ -345,31 +345,32 @@ function renderResults(rows, headers, statusColorMap){
       <th class="text-center">เลขแทร็ค</th>
     </tr></thead><tbody>`;
 
-  rows.forEach(r => {
-    table += '<tr>';
-    visibleHeaders.forEach((h, idx) => {
-      const val = r[h] || '';
+      filtered.forEach(r => {
+      table += '<tr>';
+      visibleHeaders.forEach((h, idx) => {
+        const val = r[h] || '';
     
-      if (idx === 7) {
-        // สถานะ (badge)
-        table += `<td class="text-center">${renderStatusBadge(val, statusColorMap)}</td>`;
-        return;
-      }
+        if (idx === 7) {
+          // สถานะ (badge)
+          table += `<td class="text-center">${renderStatusBadge(val, statusColorMap)}</td>`;
+          return;
+        }
     
-      if (idx === 2) {
-        // คอลัมน์ "รายการของ" — ให้แสดง newlines ตามต้นฉบับ
-        // ใช้ escapeHtml เพื่อป้องกัน XSS แล้วให้ CSS แสดง newline ด้วย white-space:pre-line
-        const safe = escapeHtml(val);
-        table += `<td class="text-start" style="white-space: pre-line; text-align: left;">${safe}</td>`;
-        return;
-      }
+        if (idx === 2) {
+          // คอลัมน์ "รายการของ" — ให้แสดง newlines ตามต้นฉบับ
+          const safe = escapeHtml(val);
+          table += `<td class="text-start" style="white-space: pre-line; text-align: left;">${safe}</td>`;
+          return;
+        }
     
-      // ช่องปกติ
-      table += `<td class="${idx === 2 ? 'text-start' : ''}">${escapeHtml(val)}</td>`;
+        // ช่องปกติ
+        table += `<td class="${idx === 2 ? 'text-start' : ''}">${escapeHtml(val)}</td>`;
+      });
+      table += '</tr>'; // ปิดแถวที่นี่ (สำคัญ)
     });
-
-  table += '</tbody></table>';
-  document.getElementById('output').innerHTML = summaryBox + table;
+    
+    table += '</tbody></table>'; // ปิด tbody/table นอกลูป
+    document.getElementById('output').innerHTML = summaryBox + table;
 }
 </script>
 <script>
