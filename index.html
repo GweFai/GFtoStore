@@ -11,43 +11,113 @@
 
   <style>
     body { background-color: #FFF5EE; font-family: 'Kanit', sans-serif; }
-    h2 { font-family: 'Patrick Hand', cursive; font-size:2.2rem; color:#FF8C94; text-align:center; margin-bottom:20px; text-shadow:1px 1px 3px rgba(0,0,0,0.05); }
-    h2::before, h2::after { content:"🌻"; font-size:1.2rem; margin:0 8px; }
 
-    .search-btn { background-color:#FFB6B9; border:none; color:#fff; font-weight:700; border-radius:25px; box-shadow:0 4px 8px rgba(0,0,0,0.1); transition:0.25s; }
-    .search-btn:hover { transform:scale(1.02); background-color:#FF9AA2; }
+    h2 {
+      font-family: 'Patrick Hand', cursive;
+      font-size: 2.2rem;
+      color: #FF8C94;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.05);
+    }
+    h2::before, h2::after { content: "🌻"; font-size: 1.2rem; margin: 0 8px; }
 
-    .table-rounded { border-radius:15px; overflow:hidden; border:4px solid #FAC898; width:100%; background-color:#FFEDD5; }
-    .table-bordered { border-collapse:collapse; }
-    .table-bordered th, .table-bordered td { border:1px solid #ddd; text-align:center; vertical-align:middle; padding:12px; }
-    .table-rounded th { background-color:#FAD5A5; color:#000; font-weight:700; }
-    .table-rounded td { font-weight:300; font-size:1rem; }
-    .table-rounded tbody tr:nth-child(odd) { background-color:#FFF2E1; }
-    .table-rounded tbody tr:hover { background-color:#FFE9D0; }
+    .search-btn {
+      background-color: #FFB6B9;
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      border-radius: 25px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: 0.25s;
+    }
+    .search-btn:hover { transform: scale(1.02); background-color: #FF9AA2; }
 
-    .status-badge { display:inline-block; padding:6px 12px; border-radius:16px; font-weight:600; font-size:0.9rem; box-shadow:0 2px 6px rgba(0,0,0,0.06); color:#fff; border:0; }
+    .table-rounded {
+      border-radius: 15px;
+      overflow: hidden;
+      border: 4px solid #FAC898;
+      width: 100%;
+      background-color: #FFEDD5;
+    }
 
-    .box-cute { border-radius:16px; box-shadow:0 6px 12px rgba(0,0,0,0.1); background-color:#FFF8F0; padding:20px; border:2px dashed #FDC5A5; }
-    #statusBox { border:3px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFFAF0; box-shadow:0 4px 10px rgba(0,0,0,0.1); font-weight:bold; color:#333; font-size:0.99rem; }
-    .log { white-space:pre-wrap; font-size:0.9rem; color:#333; margin-top:10px; }
-    @media (max-width:767px) { .table-rounded td, .table-rounded th { padding:10px; font-size:0.95rem; } }
+    .table-bordered { border-collapse: collapse; }
+    .table-bordered th, .table-bordered td {
+      border: 1px solid #ddd;
+      text-align: center;
+      vertical-align: middle;
+      padding: 12px;
+    }
+
+    .table-rounded th { background-color: #FAD5A5; color: #000; font-weight: 700; }
+    .table-rounded td { font-weight: 300; font-size: 1rem; }
+    .table-rounded tbody tr:nth-child(odd) { background-color: #FFF2E1; }
+    .table-rounded tbody tr:hover { background-color: #FFE9D0; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      color: #fff;
+    }
+
+    .box-cute {
+      border-radius: 16px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      background-color: #FFF8F0;
+      padding: 20px;
+      border: 2px dashed #FDC5A5;
+    }
+
+    #statusBox {
+      border: 3px solid #FAC898;
+      padding: 20px;
+      border-radius: 12px;
+      background-color: #FFFAF0;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      font-weight: bold;
+      color: #333;
+      font-size: 0.99rem;
+    }
+
+    .log { white-space: pre-wrap; font-size: 0.9rem; color: #333; margin-top: 10px; }
+
+    @media (max-width: 767px) {
+      .table-rounded td, .table-rounded th { padding: 10px; font-size: 0.95rem; }
+    }
   </style>
 </head>
+
 <body class="container mt-4">
 
+  <!-- Search UI -->
   <div class="row justify-content-center mb-4">
-    <div class="col-12 col-md-8" style="border:4px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFF8E1; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-      <h2 class="text-center" style="font-weight:700; color:#FFA500; font-family:'Arial',sans-serif;">Status Update</h2>
+    <div class="col-12 col-md-8"
+         style="border:4px solid #FAC898; padding:20px; border-radius:12px;
+                background-color:#FFF8E1; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+
+      <h2 class="text-center" style="font-weight:700; color:#FFA500; font-family:'Arial',sans-serif;">
+        Status Update
+      </h2>
 
       <div class="row justify-content-center mb-3">
         <div class="col-12 col-md-6">
-          <input type="text" id="userId" class="form-control" placeholder="พิมพ์ชื่อ account twitter (@username)" style="text-align:center; border:none; padding:10px;">
+          <input type="text" id="userId" class="form-control"
+                 placeholder="พิมพ์ชื่อ account twitter (@username)"
+                 style="text-align:center; border:none; padding:10px;">
         </div>
       </div>
 
       <div class="row justify-content-center mb-3">
         <div class="col-12 col-md-3">
-          <button class="btn search-btn w-100" id="searchBtn" style="border:none; padding:10px; background-color:#FAC898; color:#fff; font-weight:bold;">Search</button>
+          <button class="btn search-btn w-100" id="searchBtn"
+                  style="border:none; padding:10px; background-color:#FAC898; color:#fff;
+                         font-weight:bold;">
+            Search
+          </button>
         </div>
       </div>
 
@@ -55,80 +125,62 @@
         <div class="spinner-border text-success" role="status"></div>
         <p>กำลังค้นหา...</p>
       </div>
-
     </div>
   </div>
 
   <div id="output"></div>
   <div id="log" class="log" style="display:none"></div>
 
-<script>
+  <script>
 /* =========== CONFIG =========== */
-const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM'; // your data sheet (items/status)
-const DATA_SHEET_NAME = 'Sheet1'; // main data sheet name (tab)
-const STATUS_SHEET_NAME = 'status สี'; // sheet (tab) that holds status -> color mapping
+const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM'; // data sheet id (keep as-is)
+const DATA_SHEET_NAME = 'Sheet1';     // ชื่อแท็บข้อมูลหลัก (แก้ถ้าจริงๆ ไม่ใช่ Sheet1)
+const STATUS_SHEET_NAME = 'status สี'; // ชื่อแท็บที่เก็บ mapping สถานะ => HEX color
 /* ============================== */
 
-/* Helpers */
+/* --- Helpers --- */
 function showLoading(show){ document.getElementById('loading').style.display = show ? 'block' : 'none'; }
 function showLog(msg){ const el=document.getElementById('log'); el.style.display='block'; el.textContent += msg + '\n'; }
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function parseGVizText(text){ const start=text.indexOf('{'); const end=text.lastIndexOf('}'); if(start===-1||end===-1) throw new Error('Invalid gviz response'); return JSON.parse(text.substring(start,end+1)); }
+function parseGVizText(text){
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if(start === -1 || end === -1) throw new Error('Invalid gviz response');
+  return JSON.parse(text.substring(start, end + 1));
+}
+
+/* pick readable text color based on background */
 function pickTextColorOnBackground(bgColor) {
   if(!bgColor) return '#111';
   try {
-    if(bgColor.indexOf('rgba') === 0 || bgColor.indexOf('rgb') === 0) {
-      const nums = bgColor.replace(/[^\d,\.]/g,'').split(',');
+    const s = (''+bgColor).trim();
+    if(s.indexOf('rgba') === 0 || s.indexOf('rgb') === 0) {
+      const nums = s.replace(/[^\d,\.]/g,'').split(',');
       const r = parseFloat(nums[0]), g = parseFloat(nums[1]), b = parseFloat(nums[2]);
       const yiq = (r*299 + g*587 + b*114)/1000;
       return yiq >= 128 ? '#111' : '#fff';
     }
-    let c = bgColor.replace('#','').trim();
+    let c = s.replace('#','').trim();
     if(c.length === 3) c = c.split('').map(ch=>ch+ch).join('');
+    if(c.length !== 6) return '#111';
     const r = parseInt(c.substr(0,2),16), g = parseInt(c.substr(2,2),16), b = parseInt(c.substr(4,2),16);
     const yiq = (r*299 + g*587 + b*114)/1000;
     return yiq >= 128 ? '#111' : '#fff';
   } catch(e){ return '#111'; }
 }
 
-/* Fetch gviz for any sheet/tab */
-async function fetchGviz(sheetName) {
+/* --- Fetch gviz (no auth) --- */
+async function fetchGviz(sheetName){
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json`;
-  const res = await fetch(url, {cache:'no-store'});
+  // Cache disabled for development
+  const res = await fetch(url, { cache: 'no-store' });
   if(!res.ok) throw new Error('Network error: ' + res.status);
-  const text = await res.text();
-  return parseGVizText(text);
+  const txt = await res.text();
+  return parseGVizText(txt);
 }
 
-/* Build status color map (from status sheet tab)
-   Expect sheet rows: [ statusLabel, colorValue ] starting from header row (we handle flexibly)
-*/
-function buildStatusColorMapFromRows(rows) {
-  const map = {};
-  if (!rows || !rows.length) return map;
-
-  // ถ้าค่าบนสุดดูเหมือน header (เช่น คำว่า "สถานะ" หรือ "status") ให้ข้ามแถวแรก
-  const firstRow = rows[0];
-  const maybeHeader = (firstRow[0] || '').toString().toLowerCase();
-  const isHeader = maybeHeader.includes('สถานะ') || maybeHeader.includes('status') || maybeHeader.includes('สี');
-
-  const startIdx = isHeader ? 1 : 0;
-  for (let i = startIdx; i < rows.length; i++) {
-    const r = rows[i];
-    if (!Array.isArray(r)) continue;
-    const rawKey = (r[0] || '').toString().trim();
-    const rawColor = (r[1] || '').toString().trim();
-    if (!rawKey) continue;           // ไม่มีคีย์ข้าม
-    if (!rawColor) continue;         // ถ้าไม่มีค่าสี ให้ข้าม (ลดการแมพผิด)
-    map[rawKey] = rawColor;
-  }
-  return map;
-}
-
-/* convert gviz table to simple rows (array-of-arrays)
-   We'll return rows as array of arrays for the status sheet mapping
-*/
-function gvizToArrayRows(g) {
+/* --- Convert gviz to simple arrays --- */
+function gvizToArrayRows(g){
   const out = [];
   const cols = (g.table && g.table.cols) || [];
   const rows = (g.table && g.table.rows) || [];
@@ -139,11 +191,13 @@ function gvizToArrayRows(g) {
     }
     out.push(rowArr);
   });
-  return { cols: cols.map(c=>c.label || ''), rows: out };
+  return { cols: cols.map(c => c.label || ''), rows: out };
 }
 
-/* convert main data gviz into headers + rows (objects) */
-function normalizeHeaders(cols){ return cols.map(c => (c && c.label) ? c.label.toString().trim().toLowerCase() : ''); }
+/* --- Convert main data gviz into headers + rows objects --- */
+function normalizeHeaders(cols){
+  return cols.map(c => (c && c.label) ? c.label.toString().trim() : '');
+}
 function rowToObj(row, headers){
   const obj = {};
   for(let i=0;i<headers.length;i++){
@@ -159,61 +213,85 @@ function buildRowsFromGvizObj(g){
   return { headers, rows };
 }
 
-function findMappedColorForStatus(statusText, statusColorMap) {
-  if (!statusText) return null;
-  const txt = statusText.toString().trim();
-  if (!txt) return null;
+/* --- Build status color map from rows (robust) ---
+   Accept rows array-of-arrays like:
+   [ ['รอกด', '#FCE5CD'], ['กดแล้ว', '#C9DAF8'], ... ]
+   Handles case when your sheet has no explicit header row.
+*/
+function buildStatusColorMapFromRows(rows){
+  const map = {};
+  if(!rows || !rows.length) return map;
 
-  // 1) exact match (case-sensitive and case-insensitive fallback)
-  if (statusColorMap[txt]) return statusColorMap[txt];
-  const lowerToKey = {};
-  for (const k of Object.keys(statusColorMap)) lowerToKey[k.toLowerCase()] = k;
-  const low = txt.toLowerCase();
-  if (lowerToKey[low]) return statusColorMap[lowerToKey[low]];
+  // Determine if first row looks like header: if first cell contains words like 'สถานะ' or 'status'
+  const first = (rows[0] && rows[0][0]) ? String(rows[0][0]).toLowerCase() : '';
+  const maybeHeader = first.includes('สถานะ') || first.includes('status') || first.includes('สี');
+  const start = maybeHeader ? 1 : 0;
 
-  // 2) substring match: find all keys that appear in txt (case-insensitive)
-  const matches = [];
-  for (const key of Object.keys(statusColorMap)) {
-    if (!key) continue;
-    try {
-      if (txt.toLowerCase().indexOf(key.toLowerCase()) !== -1) {
-        matches.push(key);
-      }
-    } catch (e) {
-      // ignore
-    }
+  for(let i = start; i < rows.length; i++){
+    const r = rows[i];
+    if(!Array.isArray(r)) continue;
+    const key = (r[0] || '').toString().trim();
+    const color = (r[1] || '').toString().trim();
+    if(!key) continue;
+    if(!color) continue; // skip if no color set
+    map[key] = color;
   }
+  return map;
+}
 
-  if (matches.length === 0) return null;
+/* --- Find mapped color for statusText:
+     1) exact (case-sensitive)
+     2) exact case-insensitive
+     3) substring match (case-insensitive) -> choose longest matching key
+*/
+function findMappedColorForStatus(statusText, statusColorMap){
+  if(!statusText) return null;
+  const txt = String(statusText).trim();
+  if(!txt) return null;
 
-  // prefer the longest key (more specific)
-  matches.sort((a, b) => b.length - a.length);
+  if(statusColorMap[txt]) return statusColorMap[txt];
+
+  const lowerToKey = {};
+  for(const k of Object.keys(statusColorMap)) lowerToKey[k.toLowerCase()] = k;
+  if(lowerToKey[txt.toLowerCase()]) return statusColorMap[lowerToKey[txt.toLowerCase()]];
+
+  // substring matches
+  const matches = [];
+  const low = txt.toLowerCase();
+  for(const key of Object.keys(statusColorMap)){
+    if(!key) continue;
+    try {
+      if(low.indexOf(key.toLowerCase()) !== -1) matches.push(key);
+    } catch(e){ /* ignore */ }
+  }
+  if(matches.length === 0) return null;
+  matches.sort((a,b) => b.length - a.length); // prefer longest
   return statusColorMap[matches[0]];
 }
 
-/* Render status badge using mapping */
-function renderStatusBadge(text, statusColorMap) {
-  if (!text) return '';
+/* --- Render badge --- */
+function renderStatusBadge(text, statusColorMap){
+  if(!text) return '';
   const label = String(text).trim();
-  // find mapped color (exact or substring)
   const mapped = findMappedColorForStatus(label, statusColorMap);
   const bg = mapped || '#e6e6e6';
   const txtColor = pickTextColorOnBackground(bg);
   return `<span class="status-badge" style="background:${bg}; color:${txtColor}">${escapeHtml(label)}</span>`;
 }
 
-/* Render results table using color map */
-function renderResults(rows, headers, statusColorMap) {
+/* --- Render table and summary --- */
+function renderResults(rows, headers, statusColorMap){
   showLoading(false);
-  if(!rows || rows.length === 0) {
+  if(!rows || rows.length === 0){
     document.getElementById('output').innerHTML = `<div class="row justify-content-center"><div class="col-4"><div class='box-cute alert alert-warning text-center'>ไม่พบข้อมูลของบัญชีนี้ กรุณาตรวจสอบอีกครั้ง</div></div></div>`;
     return;
   }
 
+  // compute totals as before (defensive column names)
   let pickupTotal = 0, ecoShippingTotal = 0;
-  rows.forEach(r=>{
-    const statusText = (r['สถานะ'] || r['status'] || r['status_text'] || r['col8'] || '').toString();
-    if(statusText.includes('ถึงไทยแล้ว')){
+  rows.forEach(r => {
+    const statusText = (r['สถานะ'] || r['status'] || r['status_text'] || '').toString();
+    if(statusText && statusText.indexOf('ถึงไทยแล้ว') !== -1){
       const sendBack = parseFloat((r['ค่าส่งกลับไทย'] || r['sendback'] || r['col5'] || '').toString().replace(/,/g,'')) || 0;
       const eco = parseFloat((r['ค่าส่งไปร'] || r['eco'] || r['col6'] || '').toString().replace(/,/g,'')) || 0;
       pickupTotal += sendBack;
@@ -233,26 +311,26 @@ function renderResults(rows, headers, statusColorMap) {
           📍หากเป็นพื้นที่พิเศษ อาจมีค่าบริการเพิ่มเติม 15 บาท
         </div>
       </div>
-
       <div id="statusBox" class="col-12 col-md-4" style="border:3px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFFAF0;">
         <p>💌 ค่าส่งกลับไทยและในประเทศสามารถโอนได้ที่</p>
         <p>กุลิสรา จินดา</p>
         <p>🔶 กสิกร (Kbank) 070-8-99869-9</p>
         <p>หลังโอน กรุณาแนบสลิป และระบุชื่อ-ที่อยู่-เบอร์โทร ผ่าน <a href="https://forms.gle/RisnJ8y8hFnL4d2Z7" target="_blank">ลิงก์นี้</a></p>
       </div>
-    </div>`;
+    </div>
+  `;
 
-  // Choose visible headers (like before)
+  // decide visible headers (robust: fallback to positions)
   const visibleHeaders = [
-    headers[0] || 'col0', // แอค
-    headers[1] || 'col1', // ประเภท
-    headers[2] || 'col2', // รายการ
-    headers[3] || 'col3', // ราคา
-    headers[5] || 'col5', // ค่าส่งกลับไทย
-    headers[6] || 'col6', // ค่าส่งไปร
-    headers[10]|| 'col10',// เว็บส่ง
-    headers[8] || 'col8', // สถานะ
-    headers[9] || 'col9'  // เลขแทร็ค
+    headers[0] || 'col0',  // แอค
+    headers[1] || 'col1',  // ประเภท
+    headers[2] || 'col2',  // รายการ
+    headers[3] || 'col3',  // ราคา
+    headers[5] || 'col5',  // ค่าส่งกลับไทย
+    headers[6] || 'col6',  // ค่าส่งไปร
+    headers[10]|| 'col10', // เว็บส่ง
+    headers[8] || 'col8',  // สถานะ
+    headers[9] || 'col9'   // เลขแทร็ค
   ];
 
   let table = `<table class="table table-bordered table-rounded"><thead><tr>
@@ -267,78 +345,117 @@ function renderResults(rows, headers, statusColorMap) {
       <th class="text-center">เลขแทร็ค</th>
     </tr></thead><tbody>`;
 
-  rows.forEach(r=>{
-    table += `<tr>`;
+  rows.forEach(r => {
+    table += '<tr>';
     visibleHeaders.forEach((h, idx) => {
       const val = r[h] || '';
-      if(idx === 7) { // status column
+      if(idx === 7){
         table += `<td class="text-center">${renderStatusBadge(val, statusColorMap)}</td>`;
       } else {
-        table += `<td class="${idx===2?'text-start':''}">${escapeHtml(val)}</td>`;
+        table += `<td class="${idx===2 ? 'text-start' : ''}">${escapeHtml(val)}</td>`;
       }
     });
-    table += `</tr>`;
+    table += '</tr>';
   });
 
-  table += `</tbody></table>`;
+  table += '</tbody></table>';
   document.getElementById('output').innerHTML = summaryBox + table;
 }
+</script>
+<script>
+/* =========== Part 3: main handler + wiring + debug logs =========== */
 
-/* Main: fetch both data and status color map, then filter+render */
-async function handleSearch(){
-  const uid = (document.getElementById('userId').value || '').trim().toLowerCase();
-  if(!uid){ alert('กรุณากรอกชื่อบัญชี Twitter ก่อน'); return; }
+async function handleSearch() {
+  const uidRaw = (document.getElementById('userId').value || '').trim();
+  if (!uidRaw) {
+    alert('กรุณากรอกชื่อบัญชี Twitter ก่อน');
+    return;
+  }
+  const uid = uidRaw.toLowerCase();
 
   try {
     showLoading(true);
     document.getElementById('output').innerHTML = '';
     document.getElementById('log').style.display = 'none';
+    document.getElementById('log').textContent = '';
 
-    // fetch both sheets in parallel
+    // Fetch both sheets in parallel
+    console.log('Fetching data sheet:', DATA_SHEET_NAME, 'and status sheet:', STATUS_SHEET_NAME);
+    showLog(`Fetching sheet: ${DATA_SHEET_NAME} and status mapping: ${STATUS_SHEET_NAME} ...`);
     const [dataG, statusG] = await Promise.all([
       fetchGviz(DATA_SHEET_NAME),
       fetchGviz(STATUS_SHEET_NAME)
     ]);
 
-    // build status map
+    // Build status color map
     const statusRows = gvizToArrayRows(statusG).rows; // array-of-arrays
+    console.log('statusRows (raw):', statusRows);
+    showLog('statusRows length: ' + statusRows.length);
+
     const statusColorMap = buildStatusColorMapFromRows(statusRows);
+    console.log('statusColorMap:', statusColorMap);
+    showLog('statusColorMap keys: ' + Object.keys(statusColorMap).join(', '));
 
-    // build data rows
+    // Build data rows
     const { headers, rows } = buildRowsFromGvizObj(dataG);
+    console.log('data headers:', headers);
+    console.log('data rows count:', rows.length);
+    showLog('data rows count: ' + rows.length);
 
-    // filter by uid (matching first column or common keys)
+    // Filter rows by uid (robust candidates)
     const usernameCol = headers[0] || 'col0';
     const filtered = rows.filter(r => {
       const candidates = [
         (r[usernameCol] || ''),
         (r['account'] || r['user'] || r['username'] || r['แอค'] || '')
       ];
-      for(const c of candidates){
-        if(!c) continue;
+      for (const c of candidates) {
+        if (!c) continue;
         const s = String(c).trim().toLowerCase();
-        if(s === uid) return true;
-        if(s === ('@'+uid)) return true;
-        if(('@'+s) === uid) return true;
+        if (s === uid) return true;
+        if (s === ('@' + uid)) return true;
+        if (('@' + s) === uid) return true;
       }
       return false;
     });
 
-    renderResults(filtered, headers, statusColorMap);
-    showLoading(false);
-    if(!filtered.length) showLog('ไม่พบข้อมูลสำหรับ: ' + uid);
+    console.log('filtered rows count:', filtered.length);
+    showLog('filtered rows count: ' + filtered.length);
 
-  } catch(e) {
+    // Render table
+    renderResults(filtered, headers, statusColorMap);
+
+  } catch (err) {
+    console.error('handleSearch error', err);
+    document.getElementById('output').innerHTML = `<div class='box-cute alert alert-danger text-center'>โหลดข้อมูลล้มเหลว: ${escapeHtml(err && err.message ? err.message : err)}</div>`;
+    showLog('error: ' + (err && err.stack ? err.stack : err));
+  } finally {
     showLoading(false);
-    document.getElementById('output').innerHTML = `<div class='box-cute alert alert-danger text-center'>โหลดข้อมูลล้มเหลว: ${escapeHtml(e.message||e)}</div>`;
-    showLog('error: ' + (e && e.stack ? e.stack : e));
   }
 }
 
-/* wire events */
+/* Wire events */
 document.getElementById('searchBtn').addEventListener('click', handleSearch);
-document.getElementById('userId').addEventListener('keydown', function(e){ if(e.key === 'Enter') handleSearch(); });
+document.getElementById('userId').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') handleSearch();
+});
 
+/* Optional: prefill userId from query param (e.g. ?user=@zomday2) and auto-search */
+(function autoPrefillFromQuery(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('user') || params.get('uid') || params.get('u');
+    if (q) {
+      document.getElementById('userId').value = q;
+      // small delay so UI shows before running
+      setTimeout(() => {
+        handleSearch();
+      }, 200);
+    }
+  } catch (e) { /* ignore */ }
+})();
 </script>
+
 </body>
 </html>
+
