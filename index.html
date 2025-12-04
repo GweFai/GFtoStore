@@ -349,14 +349,24 @@ function renderResults(rows, headers, statusColorMap){
     table += '<tr>';
     visibleHeaders.forEach((h, idx) => {
       const val = r[h] || '';
-      if(idx === 7){
+    
+      if (idx === 7) {
+        // สถานะ (badge)
         table += `<td class="text-center">${renderStatusBadge(val, statusColorMap)}</td>`;
-      } else {
-        table += `<td class="${idx===2 ? 'text-start' : ''}">${escapeHtml(val)}</td>`;
+        return;
       }
+    
+      if (idx === 2) {
+        // คอลัมน์ "รายการของ" — ให้แสดง newlines ตามต้นฉบับ
+        // ใช้ escapeHtml เพื่อป้องกัน XSS แล้วให้ CSS แสดง newline ด้วย white-space:pre-line
+        const safe = escapeHtml(val);
+        table += `<td class="text-start" style="white-space: pre-line; text-align: left;">${safe}</td>`;
+        return;
+      }
+    
+      // ช่องปกติ
+      table += `<td class="${idx === 2 ? 'text-start' : ''}">${escapeHtml(val)}</td>`;
     });
-    table += '</tr>';
-  });
 
   table += '</tbody></table>';
   document.getElementById('output').innerHTML = summaryBox + table;
