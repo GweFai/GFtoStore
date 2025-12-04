@@ -135,7 +135,7 @@
 <script>
 /* =========== CONFIG =========== */
 const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM'; // data sheet id (keep as-is)
-const DATA_SHEET_NAME = 'Sheet1';     // ชื่อแท็บข้อมูลหลัก (แก้ถ้าจริงๆ ไม่ใช่ Sheet1)
+const DATA_SHEET_NAME = 'Search';     // ชื่อแท็บข้อมูลหลัก
 const STATUS_SHEET_NAME = 'status สี'; // ชื่อแท็บที่เก็บ mapping สถานะ => HEX color
 /* ============================== */
 
@@ -312,13 +312,15 @@ function renderResults(rows, headers, statusColorMap){
           📍หากเป็นพื้นที่พิเศษ อาจมีค่าบริการเพิ่มเติม 15 บาท
         </div>
       </div>
-      <div id="statusBox" class="col-12 col-md-4 text-center" style="border:3px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFFAF0;">
+     <div class="col-12 col-md-4">
+        <div class="box-cute alert alert-info text-center" style="border:3px solid #FAC898; background-color:#FFFAF0; font-weight:bold;">
         <p>💌 ค่าส่งกลับไทยและในประเทศสามารถโอนได้ที่</p>
         <p>กุลิสรา จินดา</p>
         <p>🔶 กสิกร (Kbank) 070-8-99869-9</p>
         <p>หลังโอน กรุณาแนบสลิป และระบุชื่อ-ที่อยู่-เบอร์โทร ผ่าน <a href="https://forms.gle/RisnJ8y8hFnL4d2Z7" target="_blank">ลิงก์นี้</a></p>
-      </div>
+        </div>
     </div>
+  </div>
   `;
 
   // decide visible headers (robust: fallback to positions)
