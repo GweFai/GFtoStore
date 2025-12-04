@@ -85,9 +85,6 @@
 
     .log { white-space: pre-wrap; font-size: 0.9rem; color: #333; margin-top: 10px; }
 
-    /* show newlines in cells where needed */
-    .preserve-newlines { white-space: pre-line; text-align: left; }
-
     @media (max-width: 767px) {
       .table-rounded td, .table-rounded th { padding: 10px; font-size: 0.95rem; }
     }
@@ -133,11 +130,10 @@
 
   <div id="output"></div>
   <div id="log" class="log" style="display:none"></div>
-
 <script>
 /* =========== CONFIG =========== */
-const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM'; // spreadsheet id
-const DATA_SHEET_NAME = 'Sheet1';     // ชื่อแท็บข้อมูลหลัก (ปรับถ้าจริงๆ ต่าง)
+const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM'; // data sheet id (keep as-is)
+const DATA_SHEET_NAME = 'Sheet1';     // ชื่อแท็บข้อมูลหลัก (แก้ถ้าจริงๆ ไม่ใช่ Sheet1)
 const STATUS_SHEET_NAME = 'status สี'; // ชื่อแท็บที่เก็บ mapping สถานะ => HEX color
 /* ============================== */
 
@@ -175,6 +171,7 @@ function pickTextColorOnBackground(bgColor) {
 /* --- Fetch gviz (no auth) --- */
 async function fetchGviz(sheetName){
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json`;
+  // Cache disabled for development
   const res = await fetch(url, { cache: 'no-store' });
   if(!res.ok) throw new Error('Network error: ' + res.status);
   const txt = await res.text();
@@ -216,13 +213,15 @@ function buildRowsFromGvizObj(g){
 }
 
 /* --- Build status color map from rows (robust) ---
-   Expect rows like [ ['รอกด', '#FCE5CD'], ['กดแล้ว', '#C9DAF8'], ... ]
-   If first row is header (contains 'สถานะ'/'status'/'สี') it will skip it.
+   Accept rows array-of-arrays like:
+   [ ['รอกด', '#FCE5CD'], ['กดแล้ว', '#C9DAF8'], ... ]
+   Handles case when your sheet has no explicit header row.
 */
 function buildStatusColorMapFromRows(rows){
   const map = {};
   if(!rows || !rows.length) return map;
 
+  // Determine if first row looks like header: if first cell contains words like 'สถานะ' or 'status'
   const first = (rows[0] && rows[0][0]) ? String(rows[0][0]).toLowerCase() : '';
   const maybeHeader = first.includes('สถานะ') || first.includes('status') || first.includes('สี');
   const start = maybeHeader ? 1 : 0;
@@ -233,14 +232,16 @@ function buildStatusColorMapFromRows(rows){
     const key = (r[0] || '').toString().trim();
     const color = (r[1] || '').toString().trim();
     if(!key) continue;
-    if(!color) continue;
+    if(!color) continue; // skip if no color set
     map[key] = color;
   }
   return map;
 }
 
 /* --- Find mapped color for statusText:
-     exact, case-insensitive exact, then longest substring match (case-insensitive)
+     1) exact (case-sensitive)
+     2) exact case-insensitive
+     3) substring match (case-insensitive) -> choose longest matching key
 */
 function findMappedColorForStatus(statusText, statusColorMap){
   if(!statusText) return null;
@@ -253,16 +254,17 @@ function findMappedColorForStatus(statusText, statusColorMap){
   for(const k of Object.keys(statusColorMap)) lowerToKey[k.toLowerCase()] = k;
   if(lowerToKey[txt.toLowerCase()]) return statusColorMap[lowerToKey[txt.toLowerCase()]];
 
+  // substring matches
   const matches = [];
   const low = txt.toLowerCase();
   for(const key of Object.keys(statusColorMap)){
     if(!key) continue;
     try {
       if(low.indexOf(key.toLowerCase()) !== -1) matches.push(key);
-    } catch(e){}
+    } catch(e){ /* ignore */ }
   }
   if(matches.length === 0) return null;
-  matches.sort((a,b)=>b.length - a.length);
+  matches.sort((a,b) => b.length - a.length); // prefer longest
   return statusColorMap[matches[0]];
 }
 
@@ -284,7 +286,7 @@ function renderResults(rows, headers, statusColorMap){
     return;
   }
 
-  // compute totals
+  // compute totals as before (defensive column names)
   let pickupTotal = 0, ecoShippingTotal = 0;
   rows.forEach(r => {
     const statusText = (r['สถานะ'] || r['status'] || r['status_text'] || '').toString();
@@ -317,6 +319,7 @@ function renderResults(rows, headers, statusColorMap){
     </div>
   `;
 
+  // decide visible headers (robust: fallback to positions)
   const visibleHeaders = [
     headers[0] || 'col0',  // แอค
     headers[1] || 'col1',  // ประเภท
@@ -329,7 +332,6 @@ function renderResults(rows, headers, statusColorMap){
     headers[9] || 'col9'   // เลขแทร็ค
   ];
 
-  // ---------- ใช้เฉพาะคอลัมน์ 'แอค' ในการค้นหา (filtered rows already passed here) ----------
   let table = `<table class="table table-bordered table-rounded"><thead><tr>
       <th class="text-center">แอค</th>
       <th class="text-center">ประเภทสินค้า</th>
@@ -346,22 +348,11 @@ function renderResults(rows, headers, statusColorMap){
     table += '<tr>';
     visibleHeaders.forEach((h, idx) => {
       const val = r[h] || '';
-
-      if (idx === 7) {
-        // สถานะ (badge)
+      if(idx === 7){
         table += `<td class="text-center">${renderStatusBadge(val, statusColorMap)}</td>`;
-        return;
+      } else {
+        table += `<td class="${idx===2 ? 'text-start' : ''}">${escapeHtml(val)}</td>`;
       }
-
-      if (idx === 2) {
-        // คอลัมน์ "รายการของ" — ให้แสดง newlines ตามต้นฉบับ
-        const safe = escapeHtml(val);
-        table += `<td class="preserve-newlines">${safe}</td>`;
-        return;
-      }
-
-      // ช่องปกติ
-      table += `<td class="${idx === 2 ? 'text-start' : ''}">${escapeHtml(val)}</td>`;
     });
     table += '</tr>';
   });
@@ -370,9 +361,8 @@ function renderResults(rows, headers, statusColorMap){
   document.getElementById('output').innerHTML = summaryBox + table;
 }
 </script>
-
 <script>
-/* =========== Main handler + wiring + debug logs (ใช้เฉพาะคอลัมน์ 'แอค') =========== */
+/* =========== Part 3: main handler + wiring + debug logs =========== */
 
 async function handleSearch() {
   const uidRaw = (document.getElementById('userId').value || '').trim();
@@ -411,44 +401,27 @@ async function handleSearch() {
     console.log('data rows count:', rows.length);
     showLog('data rows count: ' + rows.length);
 
-    // ----------------- Use only column 'แอค' for searching -----------------
-    const targetHeaderName = 'แอค';
-    let usernameKey = null;
-    if (Array.isArray(headers)) {
-      for (const h of headers) {
-        if (!h) continue;
-        if (h.toString().trim() === targetHeaderName) {
-          usernameKey = h;
-          break;
-        }
-      }
-      if (!usernameKey) {
-        usernameKey = headers[0] || 'col0';
-        console.warn(`Header '${targetHeaderName}' not found — falling back to first header:`, usernameKey);
-        showLog(`Header '${targetHeaderName}' not found — falling back to: ${usernameKey}`);
-      } else {
-        console.log(`Using header '${targetHeaderName}' as username key.`);
-        showLog(`Using header: ${targetHeaderName}`);
-      }
-    } else {
-      usernameKey = 'col0';
-    }
-
+    // Filter rows by uid (robust candidates)
+    const usernameCol = headers[0] || 'col0';
     const filtered = rows.filter(r => {
-      const cell = (r[usernameKey] || '');
-      if (!cell) return false;
-      const s = String(cell).trim().toLowerCase();
-      if (s === uid) return true;
-      if (s === ('@' + uid)) return true;
-      if (('@' + s) === uid) return true;
-      if (s.indexOf(uid) !== -1) return true; // loose match
+      const candidates = [
+        (r[usernameCol] || ''),
+        (r['account'] || r['user'] || r['username'] || r['แอค'] || '')
+      ];
+      for (const c of candidates) {
+        if (!c) continue;
+        const s = String(c).trim().toLowerCase();
+        if (s === uid) return true;
+        if (s === ('@' + uid)) return true;
+        if (('@' + s) === uid) return true;
+      }
       return false;
     });
 
-    console.log('filtered rows count (using แอค):', filtered.length);
-    showLog('filtered rows count (using แอค): ' + filtered.length);
+    console.log('filtered rows count:', filtered.length);
+    showLog('filtered rows count: ' + filtered.length);
 
-    // Render table using filtered rows
+    // Render table
     renderResults(filtered, headers, statusColorMap);
 
   } catch (err) {
@@ -473,7 +446,10 @@ document.getElementById('userId').addEventListener('keydown', function(e){
     const q = params.get('user') || params.get('uid') || params.get('u');
     if (q) {
       document.getElementById('userId').value = q;
-      setTimeout(() => { handleSearch(); }, 200);
+      // small delay so UI shows before running
+      setTimeout(() => {
+        handleSearch();
+      }, 200);
     }
   } catch (e) { /* ignore */ }
 })();
