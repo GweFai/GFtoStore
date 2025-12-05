@@ -83,7 +83,7 @@
       font-size: 0.99rem;
     }
 
-    .log { white-space: pre-wrap; font-size: 0.9rem; color: #333; margin-top: 10px; }
+    .log { white-space: pre-wrap; font-size: 0.9rem; color: #333; margin-top: 10px; display:none; background:#fff; padding:10px; border-radius:8px; border:1px solid #eee; }
 
     .preserve-newlines { white-space: pre-line; text-align: left; }
 
@@ -132,16 +132,21 @@
 
   <div id="output"></div>
   <div id="log" class="log" style="display:none"></div>
+
 <script>
 /* =========== CONFIG =========== */
-const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM'; // data sheet id (keep as-is)
-const DATA_SHEET_NAME = 'Search';     // ชื่อแท็บข้อมูลหลัก
+const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM'; // data sheet id
+const DATA_SHEET_NAME = 'Search';     // ชื่อแท็บข้อมูลหลัก (เดิมคุณกำหนด Search)
 const STATUS_SHEET_NAME = 'status สี'; // ชื่อแท็บที่เก็บ mapping สถานะ => HEX color
+
+// CSV fallback config: ถ้า gviz คืนค่าไม่ครบ/ถูก filter ให้ fallback ไปดึง CSV โดยใช้ GID ของแท็บ
+// คุณบอก GID เอง (ตัวอย่าง 0) — ถ้าแท็บไม่ใช่ gid=0 ให้เปลี่ยนตัวนี้
+const DATA_SHEET_GID = '0';
 /* ============================== */
 
 /* --- Helpers --- */
 function showLoading(show){ document.getElementById('loading').style.display = show ? 'block' : 'none'; }
-// function showLog(msg){ const el=document.getElementById('log'); el.style.display='block'; el.textContent += msg + '\n'; }
+function showLog(msg){ const el=document.getElementById('log'); el.style.display='block'; el.textContent += msg + '\n'; }
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function parseGVizText(text){
   const start = text.indexOf('{');
@@ -180,6 +185,79 @@ async function fetchGviz(sheetName){
   return parseGVizText(txt);
 }
 
+/* --- CSV fetch & parse fallback --- */
+async function fetchCsvByGid(gid) {
+  if (!gid) throw new Error('DATA_SHEET_GID not configured');
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error('CSV fetch failed: ' + res.status);
+  const txt = await res.text();
+  return parseCsvToRows(txt);
+}
+
+// naive but robust CSV parser: handles quoted fields and newlines
+function parseCsvToRows(csvText) {
+  const rows = [];
+  let cur = [];
+  let curCell = '';
+  let inQuotes = false;
+  for (let i = 0; i < csvText.length; i++) {
+    const ch = csvText[i];
+    const next = csvText[i+1];
+    if (ch === '"') {
+      if (inQuotes && next === '"') {
+        curCell += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (ch === ',' && !inQuotes) {
+      cur.push(curCell);
+      curCell = '';
+      continue;
+    }
+    if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (ch === '\r' && csvText[i+1] === '\n') { /* skip next in loop */ }
+      cur.push(curCell);
+      rows.push(cur);
+      cur = [];
+      curCell = '';
+      if (ch === '\r' && csvText[i+1] === '\n') i++;
+      continue;
+    }
+    curCell += ch;
+  }
+  if (curCell.length > 0 || cur.length > 0) {
+    cur.push(curCell);
+    rows.push(cur);
+  }
+  return rows;
+}
+
+function csvRowsToObjects(csvRows) {
+  if (!csvRows || csvRows.length === 0) return { headers: [], rows: [] };
+  let headerRowIndex = 0;
+  while (headerRowIndex < csvRows.length && csvRows[headerRowIndex].every(c => (c||'').toString().trim() === '')) headerRowIndex++;
+  const headerRow = (csvRows[headerRowIndex] || []).map(h => (h || '').toString().trim());
+  const dataRows = [];
+  for (let i = headerRowIndex + 1; i < csvRows.length; i++) {
+    const r = csvRows[i];
+    if (!r || r.every(c => (c||'').toString().trim() === '')) continue;
+    const obj = {};
+    for (let j = 0; j < headerRow.length; j++) {
+      const key = headerRow[j] || ('col'+j);
+      obj[key] = (r[j] !== undefined && r[j] !== null) ? String(r[j]) : '';
+    }
+    for (let j = headerRow.length; j < r.length; j++) {
+      obj['col' + j] = (r[j] !== undefined && r[j] !== null) ? String(r[j]) : '';
+    }
+    dataRows.push(obj);
+  }
+  return { headers: headerRow, rows: dataRows };
+}
+
 /* --- Convert gviz to simple arrays --- */
 function gvizToArrayRows(g){
   const out = [];
@@ -214,63 +292,46 @@ function buildRowsFromGvizObj(g){
   return { headers, rows };
 }
 
-/* --- Build status color map from rows (robust) ---
-   Accept rows array-of-arrays like:
-   [ ['รอกด', '#FCE5CD'], ['กดแล้ว', '#C9DAF8'], ... ]
-   Handles case when your sheet has no explicit header row.
-*/
+/* --- Build status color map from rows (robust) --- */
 function buildStatusColorMapFromRows(rows){
   const map = {};
   if(!rows || !rows.length) return map;
-
-  // Determine if first row looks like header: if first cell contains words like 'สถานะ' or 'status'
   const first = (rows[0] && rows[0][0]) ? String(rows[0][0]).toLowerCase() : '';
   const maybeHeader = first.includes('สถานะ') || first.includes('status') || first.includes('สี');
   const start = maybeHeader ? 1 : 0;
-
   for(let i = start; i < rows.length; i++){
     const r = rows[i];
     if(!Array.isArray(r)) continue;
     const key = (r[0] || '').toString().trim();
     const color = (r[1] || '').toString().trim();
     if(!key) continue;
-    if(!color) continue; // skip if no color set
+    if(!color) continue;
     map[key] = color;
   }
   return map;
 }
 
-/* --- Find mapped color for statusText:
-     1) exact (case-sensitive)
-     2) exact case-insensitive
-     3) substring match (case-insensitive) -> choose longest matching key
-*/
+/* --- Find mapped color for statusText --- */
 function findMappedColorForStatus(statusText, statusColorMap){
   if(!statusText) return null;
   const txt = String(statusText).trim();
   if(!txt) return null;
-
   if(statusColorMap[txt]) return statusColorMap[txt];
-
   const lowerToKey = {};
   for(const k of Object.keys(statusColorMap)) lowerToKey[k.toLowerCase()] = k;
   if(lowerToKey[txt.toLowerCase()]) return statusColorMap[lowerToKey[txt.toLowerCase()]];
-
-  // substring matches
   const matches = [];
   const low = txt.toLowerCase();
   for(const key of Object.keys(statusColorMap)){
     if(!key) continue;
-    try {
-      if(low.indexOf(key.toLowerCase()) !== -1) matches.push(key);
-    } catch(e){ /* ignore */ }
+    try { if(low.indexOf(key.toLowerCase()) !== -1) matches.push(key); } catch(e){}
   }
   if(matches.length === 0) return null;
-  matches.sort((a,b) => b.length - a.length); // prefer longest
+  matches.sort((a,b)=>b.length - a.length);
   return statusColorMap[matches[0]];
 }
 
-/* --- Render badge --- */
+/* --- Render status badge --- */
 function renderStatusBadge(text, statusColorMap){
   if(!text) return '';
   const label = String(text).trim();
@@ -309,7 +370,7 @@ function renderResults(rows, headers, statusColorMap){
           รวมยอดค่าส่ง:<br>
           🔸 นัดรับ/ฝากของ: <span style="color:#E67300;">${formatNumber(pickupTotal)}</span> บาท<br>
           🔸 ส่งไปร eco: <span style="color:#E67300;">${formatNumber(ecoShippingTotal)}</span> บาท<br>
-          📍หากเป็นพื้นที่พิเศษ อาจมีค่าบริการเพิ่มเติม 15 บาท
+          📍 หากเป็นพื้นที่พิเศษ อาจมีค่าบริการเพิ่มเติม 15 บาท
         </div>
       </div>
      <div class="col-12 col-md-4">
@@ -352,28 +413,28 @@ function renderResults(rows, headers, statusColorMap){
       table += '<tr>';
       visibleHeaders.forEach((h, idx) => {
         const val = r[h] || '';
-    
+
         if (idx === 7) {
           // สถานะ (badge)
           table += `<td class="text-center">${renderStatusBadge(val, statusColorMap)}</td>`;
           return;
         }
-    
+
         if (idx === 2) {
           // คอลัมน์ "รายการของ" — แสดง newlines ตามต้นฉบับ (ปลอดภัยด้วย escapeHtml)
           const safe = escapeHtml(val);
           table += `<td class="preserve-newlines">${safe}</td>`;
           return;
         }
-    
+
         // ช่องปกติ
         table += `<td class="${idx === 2 ? 'text-start' : ''}">${escapeHtml(val)}</td>`;
       });
       table += '</tr>';
-});
+    });
 
-table += '</tbody></table>';
-document.getElementById('output').innerHTML = summaryBox + table;
+  table += '</tbody></table>';
+  document.getElementById('output').innerHTML = summaryBox + table;
 }
 </script>
 <script>
@@ -393,50 +454,76 @@ async function handleSearch() {
     document.getElementById('log').style.display = 'none';
     document.getElementById('log').textContent = '';
 
-    // Fetch both sheets in parallel
-    console.log('Fetching data sheet:', DATA_SHEET_NAME, 'and status sheet:', STATUS_SHEET_NAME);
-    const [dataG, statusG] = await Promise.all([
-      fetchGviz(DATA_SHEET_NAME),
-      fetchGviz(STATUS_SHEET_NAME)
-    ]);
+    // Fetch status sheet first (we want mapping for colors)
+    let statusColorMap = {};
+    try {
+      const statusG = await fetchGviz(STATUS_SHEET_NAME);
+      const statusRows = gvizToArrayRows(statusG).rows;
+      statusColorMap = buildStatusColorMapFromRows(statusRows);
+      showLog('Loaded status mapping (' + Object.keys(statusColorMap).length + ' keys)');
+    } catch (e) {
+      console.warn('Failed to load status sheet via gviz:', e && e.message);
+      showLog('Failed to load status sheet: ' + (e && e.message));
+    }
 
-    // Build status color map
-    const statusRows = gvizToArrayRows(statusG).rows; // array-of-arrays
-    console.log('statusRows (raw):', statusRows);
-
-    const statusColorMap = buildStatusColorMapFromRows(statusRows);
-    console.log('statusColorMap:', statusColorMap);
-
-    // Build data rows
-    const { headers, rows } = buildRowsFromGvizObj(dataG);
-    console.log('data headers:', headers);
-    console.log('data rows count:', rows.length);
-
-    // Filter rows by uid (robust candidates)
-    const usernameCol = headers[0] || 'col0';
-    const filtered = rows.filter(r => {
-      const candidates = [
-        (r[usernameCol] || ''),
-        (r['account'] || r['user'] || r['username'] || r['แอค'] || '')
-      ];
-      for (const c of candidates) {
-        if (!c) continue;
-        const s = String(c).trim().toLowerCase();
-        if (s === uid) return true;
-        if (s === ('@' + uid)) return true;
-        if (('@' + s) === uid) return true;
+    // Try GViz for data first
+    let headers = [], rows = [];
+    try {
+      const dataG = await fetchGviz(DATA_SHEET_NAME);
+      const tmp = buildRowsFromGvizObj(dataG);
+      headers = tmp.headers;
+      rows = tmp.rows || [];
+      if (!rows.length) throw new Error('GViz returned 0 rows (may be filtered)');
+      showLog('Using GViz for data (rows=' + rows.length + ')');
+    } catch (gvizErr) {
+      // fallback to CSV (gid)
+      showLog('GViz failed or returned no rows — fallback to CSV (gid=' + DATA_SHEET_GID + ')');
+      try {
+        const csvRows = await fetchCsvByGid(DATA_SHEET_GID);
+        const csvObj = csvRowsToObjects(csvRows);
+        headers = csvObj.headers;
+        rows = csvObj.rows || [];
+        showLog('Loaded CSV fallback (rows=' + rows.length + ')');
+      } catch (csvErr) {
+        console.error('CSV fallback also failed', csvErr);
+        throw new Error('ทั้ง GViz และ CSV fallback ล้มเหลว: ' + (csvErr && csvErr.message ? csvErr.message : csvErr));
       }
+    }
+
+    // Filter rows by column 'แอค' only (robust)
+    const targetHeaderName = 'แอค';
+    let usernameKey = null;
+    if (Array.isArray(headers)) {
+      for (const h of headers) {
+        if (!h) continue;
+        if (h.toString().trim() === targetHeaderName) { usernameKey = h; break; }
+      }
+      if (!usernameKey) { usernameKey = headers[0] || 'col0'; showLog(`Header '${targetHeaderName}' not found — using ${usernameKey}`); }
+      else showLog('Using header: ' + usernameKey);
+    } else {
+      usernameKey = 'col0';
+    }
+
+    const filtered = rows.filter(r => {
+      const cell = (r[usernameKey] || '');
+      if (!cell) return false;
+      const s = String(cell).trim().toLowerCase();
+      if (s === uid) return true;
+      if (s === ('@' + uid)) return true;
+      if (('@' + s) === uid) return true;
+      if (s.indexOf(uid) !== -1) return true; // contains
       return false;
     });
 
-    console.log('filtered rows count:', filtered.length);
+    showLog('Filtered rows count: ' + filtered.length);
 
-    // Render table
+    // Render results
     renderResults(filtered, headers, statusColorMap);
 
   } catch (err) {
     console.error('handleSearch error', err);
     document.getElementById('output').innerHTML = `<div class='box-cute alert alert-danger text-center'>โหลดข้อมูลล้มเหลว: ${escapeHtml(err && err.message ? err.message : err)}</div>`;
+    showLog('error: ' + (err && err.stack ? err.stack : err));
   } finally {
     showLoading(false);
   }
