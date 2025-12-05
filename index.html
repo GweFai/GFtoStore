@@ -7,119 +7,45 @@
 
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Kanit&family=Patrick+Hand&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit&family=Patrick+Hand&display=swap" relstylesheet>
 
   <style>
     body { background-color: #FFF5EE; font-family: 'Kanit', sans-serif; }
-
-    h2 {
-      font-family: 'Patrick Hand', cursive;
-      font-size: 2.2rem;
-      color: #FF8C94;
-      text-align: center;
-      margin-bottom: 20px;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.05);
-    }
-    h2::before, h2::after { content: "🌻"; font-size: 1.2rem; margin: 0 8px; }
-
-    .search-btn {
-      background-color: #FFB6B9;
-      border: none;
-      color: #fff;
-      font-weight: 700;
-      border-radius: 25px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transition: 0.25s;
-    }
-    .search-btn:hover { transform: scale(1.02); background-color: #FF9AA2; }
-
-    .table-rounded {
-      border-radius: 15px;
-      overflow: hidden;
-      border: 4px solid #FAC898;
-      width: 100%;
-      background-color: #FFEDD5;
-    }
-
-    .table-bordered { border-collapse: collapse; }
-    .table-bordered th, .table-bordered td {
-      border: 1px solid #ddd;
-      text-align: center;
-      vertical-align: middle;
-      padding: 12px;
-    }
-
-    .table-rounded th { background-color: #FAD5A5; color: #000; font-weight: 700; }
-    .table-rounded td { font-weight: 300; font-size: 1rem; }
-    .table-rounded tbody tr:nth-child(odd) { background-color: #FFF2E1; }
-    .table-rounded tbody tr:hover { background-color: #FFE9D0; }
-
-    .status-badge {
-      display: inline-block;
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-      color: #fff;
-    }
-
-    .box-cute {
-      border-radius: 16px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-      background-color: #FFF8F0;
-      padding: 20px;
-      border: 2px dashed #FDC5A5;
-    }
-
-    #statusBox {
-      border: 3px solid #FAC898;
-      padding: 20px;
-      border-radius: 12px;
-      background-color: #FFFAF0;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      font-weight: bold;
-      color: #333;
-      font-size: 0.99rem;
-    }
-
-    .log { white-space: pre-wrap; font-size: 0.9rem; color: #333; margin-top: 10px; display:none; background:#fff; padding:10px; border-radius:8px; border:1px solid #eee; }
-
-    .preserve-newlines { white-space: pre-line; text-align: left; }
-
-    @media (max-width: 767px) {
-      .table-rounded td, .table-rounded th { padding: 10px; font-size: 0.95rem; }
-    }
+    h2 { font-family: 'Patrick Hand', cursive; font-size: 2.2rem; color: #FF8C94; text-align:center; margin-bottom:20px; text-shadow:1px 1px 3px rgba(0,0,0,0.05); }
+    h2::before,h2::after{ content:"🌻"; margin:0 8px; }
+    .search-btn{ background:#FFB6B9; border:none; color:#fff; font-weight:700; border-radius:25px; box-shadow:0 4px 8px rgba(0,0,0,0.1); transition:.25s; }
+    .search-btn:hover{ transform:scale(1.02); background:#FF9AA2; }
+    .table-rounded{ border-radius:15px; overflow:hidden; border:4px solid #FAC898; width:100%; background:#FFEDD5; }
+    .table-bordered{ border-collapse:collapse; }
+    .table-bordered th,.table-bordered td{ border:1px solid #ddd; text-align:center; vertical-align:middle; padding:12px; }
+    .table-rounded th{ background:#FAD5A5; color:#000; font-weight:700; }
+    .table-rounded td{ font-weight:300; font-size:1rem; }
+    .table-rounded tbody tr:nth-child(odd){ background:#FFF2E1; }
+    .table-rounded tbody tr:hover{ background:#FFE9D0; }
+    .status-badge{ display:inline-block; padding:6px 12px; border-radius:16px; font-weight:600; font-size:.9rem; box-shadow:0 2px 6px rgba(0,0,0,0.06); color:#fff; }
+    .box-cute{ border-radius:16px; box-shadow:0 6px 12px rgba(0,0,0,0.1); background:#FFF8F0; padding:20px; border:2px dashed #FDC5A5; }
+    #statusBox{ border:3px solid #FAC898; padding:20px; border-radius:12px; background:#FFFAF0; box-shadow:0 4px 10px rgba(0,0,0,0.1); font-weight:bold; color:#333; }
+    .log{ white-space:pre-wrap; font-size:.9rem; color:#333; margin-top:10px; display:block; background:#fff; padding:12px; border-radius:8px; border:1px solid #eee; max-height:220px; overflow:auto; }
+    .preserve-newlines{ white-space:pre-line; text-align:left; }
+    @media (max-width:767px){ .table-rounded td,.table-rounded th{ padding:10px; font-size:.95rem; } }
   </style>
 </head>
-
 <body class="container mt-4">
 
-  <!-- Search UI -->
   <div class="row justify-content-center mb-4">
     <div class="col-12 col-md-8"
-         style="border:4px solid #FAC898; padding:20px; border-radius:12px;
-                background-color:#FFF8E1; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-
-      <h2 class="text-center" style="font-weight:700; color:#FFA500; font-family:'Arial',sans-serif;">
-        Status Update
-      </h2>
+         style="border:4px solid #FAC898; padding:20px; border-radius:12px; background-color:#FFF8E1; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+      <h2 class="text-center" style="font-weight:700; color:#FFA500;">Status Update</h2>
 
       <div class="row justify-content-center mb-3">
         <div class="col-12 col-md-6">
-          <input type="text" id="userId" class="form-control"
-                 placeholder="พิมพ์ชื่อ account twitter (@username)"
-                 style="text-align:center; border:none; padding:10px;">
+          <input id="userId" class="form-control" placeholder="พิมพ์ชื่อ account twitter (@username)" style="text-align:center; border:none; padding:10px;">
         </div>
       </div>
 
       <div class="row justify-content-center mb-3">
         <div class="col-12 col-md-3">
-          <button class="btn search-btn w-100" id="searchBtn"
-                  style="border:none; padding:10px; background-color:#FAC898; color:#fff;
-                         font-weight:bold;">
-            Search
-          </button>
+          <button id="searchBtn" class="btn search-btn w-100" style="border:none; padding:10px; background:#FAC898; color:#fff; font-weight:bold;">Search</button>
         </div>
       </div>
 
@@ -134,228 +60,161 @@
   <div id="log" class="log" style="display:none"></div>
 
 <script>
-/* =========== CONFIG =========== */
-const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM'; // data sheet id
-const DATA_SHEET_NAME = 'Search';     // ชื่อแท็บข้อมูลหลัก (เดิมคุณกำหนด Search)
-const STATUS_SHEET_NAME = 'status สี'; // ชื่อแท็บที่เก็บ mapping สถานะ => HEX color
+/* CONFIG */
+const SHEET_ID = '1ZW9e9rvH2yxJvnukUUKZTp2LzmPF87haxDL8r_rd-EM';
+const DATA_SHEET_NAME = 'Search';
+const STATUS_SHEET_NAME = 'status สี';
+const DATA_SHEET_GID = '0'; // กำหนด gid ของแท็บ Search (เปลี่ยนถ้าไม่ใช่ 0)
 
-// CSV fallback config: ถ้า gviz คืนค่าไม่ครบ/ถูก filter ให้ fallback ไปดึง CSV โดยใช้ GID ของแท็บ
-// คุณบอก GID เอง (ตัวอย่าง 0) — ถ้าแท็บไม่ใช่ gid=0 ให้เปลี่ยนตัวนี้
-const DATA_SHEET_GID = '0';
-/* ============================== */
-
-/* --- Helpers --- */
+/* Helpers */
 function showLoading(show){ document.getElementById('loading').style.display = show ? 'block' : 'none'; }
-function showLog(msg){ const el=document.getElementById('log'); el.style.display='block'; el.textContent += msg + '\n'; }
+function showLog(msg){ const el = document.getElementById('log'); el.style.display='block'; el.textContent += msg + '\n'; el.scrollTop = el.scrollHeight; }
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function parseGVizText(text){
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if(start === -1 || end === -1) throw new Error('Invalid gviz response');
-  return JSON.parse(text.substring(start, end + 1));
-}
+function parseGVizText(text){ const start = text.indexOf('{'); const end = text.lastIndexOf('}'); if(start===-1||end===-1) throw new Error('Invalid gviz response'); return JSON.parse(text.substring(start,end+1)); }
+function pickTextColorOnBackground(bgColor){ if(!bgColor) return '#111'; try{ const s = (''+bgColor).trim(); if(s.indexOf('rgb')===0){ const n=s.replace(/[^\d,\.]/g,'').split(','); const r=+n[0],g=+n[1],b=+n[2]; const yiq=(r*299+g*587+b*114)/1000; return yiq>=128? '#111':'#fff'; } let c=s.replace('#',''); if(c.length===3) c=c.split('').map(x=>x+x).join(''); if(c.length!==6) return '#111'; const r=parseInt(c.substr(0,2),16), g=parseInt(c.substr(2,2),16), b=parseInt(c.substr(4,2),16); const yiq=(r*299+g*587+b*114)/1000; return yiq>=128? '#111':'#fff'; }catch(e){return '#111';} }
 
-/* pick readable text color based on background */
-function pickTextColorOnBackground(bgColor) {
-  if(!bgColor) return '#111';
-  try {
-    const s = (''+bgColor).trim();
-    if(s.indexOf('rgba') === 0 || s.indexOf('rgb') === 0) {
-      const nums = s.replace(/[^\d,\.]/g,'').split(',');
-      const r = parseFloat(nums[0]), g = parseFloat(nums[1]), b = parseFloat(nums[2]);
-      const yiq = (r*299 + g*587 + b*114)/1000;
-      return yiq >= 128 ? '#111' : '#fff';
-    }
-    let c = s.replace('#','').trim();
-    if(c.length === 3) c = c.split('').map(ch=>ch+ch).join('');
-    if(c.length !== 6) return '#111';
-    const r = parseInt(c.substr(0,2),16), g = parseInt(c.substr(2,2),16), b = parseInt(c.substr(4,2),16);
-    const yiq = (r*299 + g*587 + b*114)/1000;
-    return yiq >= 128 ? '#111' : '#fff';
-  } catch(e){ return '#111'; }
-}
-
-/* --- Fetch gviz (no auth) --- */
+/* gviz fetch */
 async function fetchGviz(sheetName){
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json`;
-  // Cache disabled for development
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetch(url, { cache:'no-store' });
   if(!res.ok) throw new Error('Network error: ' + res.status);
   const txt = await res.text();
   return parseGVizText(txt);
 }
 
-/* --- CSV fetch & parse fallback --- */
-async function fetchCsvByGid(gid) {
-  if (!gid) throw new Error('DATA_SHEET_GID not configured');
+/* CSV fallback */
+async function fetchCsvByGid(gid){
+  if(!gid) throw new Error('DATA_SHEET_GID not set');
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) throw new Error('CSV fetch failed: ' + res.status);
+  const res = await fetch(url, { cache:'no-store' });
+  if(!res.ok) throw new Error('CSV fetch failed: ' + res.status);
   const txt = await res.text();
   return parseCsvToRows(txt);
 }
-
-// naive but robust CSV parser: handles quoted fields and newlines
-function parseCsvToRows(csvText) {
-  const rows = [];
-  let cur = [];
-  let curCell = '';
-  let inQuotes = false;
-  for (let i = 0; i < csvText.length; i++) {
-    const ch = csvText[i];
-    const next = csvText[i+1];
-    if (ch === '"') {
-      if (inQuotes && next === '"') {
-        curCell += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
+function parseCsvToRows(csvText){
+  const rows=[]; let cur=[], cell='', inQuotes=false;
+  for(let i=0;i<csvText.length;i++){
+    const ch=csvText[i], next=csvText[i+1];
+    if(ch==='"'){
+      if(inQuotes && next==='"'){ cell+='"'; i++; continue; }
+      inQuotes=!inQuotes; continue;
+    }
+    if(ch===',' && !inQuotes){ cur.push(cell); cell=''; continue; }
+    if((ch==='\n' || ch==='\r') && !inQuotes){
+      if(ch==='\r' && csvText[i+1]==='\n'){ /*skip*/ }
+      cur.push(cell); rows.push(cur); cur=[]; cell='';
+      if(ch==='\r' && csvText[i+1]==='\n') i++;
       continue;
     }
-    if (ch === ',' && !inQuotes) {
-      cur.push(curCell);
-      curCell = '';
-      continue;
-    }
-    if ((ch === '\n' || ch === '\r') && !inQuotes) {
-      if (ch === '\r' && csvText[i+1] === '\n') { /* skip next in loop */ }
-      cur.push(curCell);
-      rows.push(cur);
-      cur = [];
-      curCell = '';
-      if (ch === '\r' && csvText[i+1] === '\n') i++;
-      continue;
-    }
-    curCell += ch;
+    cell+=ch;
   }
-  if (curCell.length > 0 || cur.length > 0) {
-    cur.push(curCell);
-    rows.push(cur);
-  }
+  if(cell.length>0 || cur.length>0){ cur.push(cell); rows.push(cur); }
   return rows;
 }
-
-function csvRowsToObjects(csvRows) {
-  if (!csvRows || csvRows.length === 0) return { headers: [], rows: [] };
-  let headerRowIndex = 0;
-  while (headerRowIndex < csvRows.length && csvRows[headerRowIndex].every(c => (c||'').toString().trim() === '')) headerRowIndex++;
-  const headerRow = (csvRows[headerRowIndex] || []).map(h => (h || '').toString().trim());
-  const dataRows = [];
-  for (let i = headerRowIndex + 1; i < csvRows.length; i++) {
+function csvRowsToObjects(csvRows){
+  if(!csvRows||!csvRows.length) return { headers:[], rows:[] };
+  // find first non-empty as header
+  let headerIndex = 0;
+  while(headerIndex < csvRows.length && csvRows[headerIndex].every(c=>String(c||'').trim()==='')) headerIndex++;
+  const header = (csvRows[headerIndex] || []).map(h => String(h||'').trim());
+  const data=[];
+  for(let i=headerIndex+1;i<csvRows.length;i++){
     const r = csvRows[i];
-    if (!r || r.every(c => (c||'').toString().trim() === '')) continue;
+    if(!r || r.every(c=>String(c||'').trim()==='')) continue;
     const obj = {};
-    for (let j = 0; j < headerRow.length; j++) {
-      const key = headerRow[j] || ('col'+j);
-      obj[key] = (r[j] !== undefined && r[j] !== null) ? String(r[j]) : '';
-    }
-    for (let j = headerRow.length; j < r.length; j++) {
-      obj['col' + j] = (r[j] !== undefined && r[j] !== null) ? String(r[j]) : '';
-    }
-    dataRows.push(obj);
+    for(let j=0;j<header.length;j++){ const key = header[j] || ('col'+j); obj[key] = r[j] !== undefined && r[j] !== null ? String(r[j]) : ''; }
+    for(let j=header.length;j<r.length;j++){ obj['col'+j]= r[j] !== undefined && r[j] !== null ? String(r[j]) : ''; }
+    data.push(obj);
   }
-  return { headers: headerRow, rows: dataRows };
+  return { headers: header, rows: data };
 }
 
-/* --- Convert gviz to simple arrays --- */
+/* gviz -> simple rows */
 function gvizToArrayRows(g){
-  const out = [];
-  const cols = (g.table && g.table.cols) || [];
-  const rows = (g.table && g.table.rows) || [];
-  rows.forEach(r => {
-    const rowArr = [];
-    for(let i=0;i<cols.length;i++){
-      rowArr.push(r.c && r.c[i] && typeof r.c[i].v !== 'undefined' ? r.c[i].v : '');
-    }
-    out.push(rowArr);
-  });
-  return { cols: cols.map(c => c.label || ''), rows: out };
+  const out=[]; const cols=(g.table && g.table.cols)||[]; const rows=(g.table && g.table.rows)||[];
+  rows.forEach(r=>{ const rowArr=[]; for(let i=0;i<cols.length;i++){ rowArr.push(r.c && r.c[i] && typeof r.c[i].v !== 'undefined' ? r.c[i].v : ''); } out.push(rowArr); });
+  return { cols: cols.map(c=>c.label||''), rows: out };
 }
-
-/* --- Convert main data gviz into headers + rows objects --- */
-function normalizeHeaders(cols){
-  return cols.map(c => (c && c.label) ? c.label.toString().trim() : '');
-}
+function normalizeHeaders(cols){ return cols.map(c => (c && c.label) ? c.label.toString().trim() : ''); }
 function rowToObj(row, headers){
-  const obj = {};
-  for(let i=0;i<headers.length;i++){
-    const key = headers[i] || ('col'+i);
-    const cell = row.c && row.c[i] ? row.c[i].v : '';
-    obj[key] = (cell === null || typeof cell === 'undefined') ? '' : String(cell);
-  }
-  return obj;
+  const obj={}; for(let i=0;i<headers.length;i++){ const key = headers[i] || ('col'+i); const cell = row.c && row.c[i] ? row.c[i].v : ''; obj[key] = (cell === null || typeof cell === 'undefined') ? '' : String(cell); } return obj;
 }
-function buildRowsFromGvizObj(g){
-  const headers = normalizeHeaders(g.table.cols || []);
-  const rows = (g.table.rows || []).map(r => rowToObj(r, headers));
-  return { headers, rows };
-}
+function buildRowsFromGvizObj(g){ const headers = normalizeHeaders(g.table.cols || []); const rows = (g.table.rows || []).map(r => rowToObj(r, headers)); return { headers, rows }; }
 
-/* --- Build status color map from rows (robust) --- */
+/* status color map */
 function buildStatusColorMapFromRows(rows){
-  const map = {};
-  if(!rows || !rows.length) return map;
+  const map={}; if(!rows||!rows.length) return map;
   const first = (rows[0] && rows[0][0]) ? String(rows[0][0]).toLowerCase() : '';
-  const maybeHeader = first.includes('สถานะ') || first.includes('status') || first.includes('สี');
+  const maybeHeader = first.includes('สถานะ')||first.includes('status')||first.includes('สี');
   const start = maybeHeader ? 1 : 0;
-  for(let i = start; i < rows.length; i++){
-    const r = rows[i];
-    if(!Array.isArray(r)) continue;
-    const key = (r[0] || '').toString().trim();
-    const color = (r[1] || '').toString().trim();
-    if(!key) continue;
-    if(!color) continue;
-    map[key] = color;
-  }
+  for(let i=start;i<rows.length;i++){ const r = rows[i]; if(!Array.isArray(r)) continue; const key = (r[0]||'').toString().trim(); const color = (r[1]||'').toString().trim(); if(!key||!color) continue; map[key]=color; }
   return map;
 }
-
-/* --- Find mapped color for statusText --- */
 function findMappedColorForStatus(statusText, statusColorMap){
-  if(!statusText) return null;
-  const txt = String(statusText).trim();
-  if(!txt) return null;
+  if(!statusText) return null; const txt = String(statusText).trim(); if(!txt) return null;
   if(statusColorMap[txt]) return statusColorMap[txt];
-  const lowerToKey = {};
-  for(const k of Object.keys(statusColorMap)) lowerToKey[k.toLowerCase()] = k;
+  const lowerToKey={}; for(const k of Object.keys(statusColorMap)) lowerToKey[k.toLowerCase()]=k;
   if(lowerToKey[txt.toLowerCase()]) return statusColorMap[lowerToKey[txt.toLowerCase()]];
-  const matches = [];
-  const low = txt.toLowerCase();
-  for(const key of Object.keys(statusColorMap)){
-    if(!key) continue;
-    try { if(low.indexOf(key.toLowerCase()) !== -1) matches.push(key); } catch(e){}
-  }
-  if(matches.length === 0) return null;
-  matches.sort((a,b)=>b.length - a.length);
-  return statusColorMap[matches[0]];
+  const matches=[]; const low = txt.toLowerCase();
+  for(const key of Object.keys(statusColorMap)){ if(!key) continue; try { if(low.indexOf(key.toLowerCase()) !== -1) matches.push(key); } catch(e){} }
+  if(matches.length===0) return null; matches.sort((a,b)=>b.length - a.length); return statusColorMap[matches[0]];
+}
+function renderStatusBadge(text, statusColorMap){ if(!text) return ''; const label = String(text).trim(); const mapped = findMappedColorForStatus(label, statusColorMap); const bg = mapped || '#e6e6e6'; const txtColor = pickTextColorOnBackground(bg); return `<span class="status-badge" style="background:${bg}; color:${txtColor}">${escapeHtml(label)}</span>`; }
+
+/* normalization for username matching */
+function normalizeForMatch(s){
+  if(!s) return '';
+  // remove zero width, weird spaces, trim, toLower
+  return String(s).replace(/[\u200B-\u200F\uFEFF]/g,'').replace(/\u00A0/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
+}
+function stripAt(s){ if(!s) return ''; return s.replace(/^@+/,''); }
+
+/* robust match: multiple strategies */
+function accountMatchesCell(queryRaw, cellRaw){
+  if(!cellRaw || !queryRaw) return false;
+  const q = normalizeForMatch(queryRaw);
+  const c = normalizeForMatch(cellRaw);
+
+  // remove wrapping punctuation
+  const qNoAt = stripAt(q);
+  const cNoAt = stripAt(c);
+
+  // exact matches
+  if(c === q) return true;
+  if(cNoAt === qNoAt) return true;
+  if(c === ('@'+q) || ('@'+c) === q) return true;
+
+  // contains
+  if(c.indexOf(q) !== -1) return true;
+  if(cNoAt.indexOf(qNoAt) !== -1) return true;
+
+  // tokens match (split by common separators)
+  const tokens = c.split(/[\s,;\/\|]+/).map(t => stripAt(t));
+  if(tokens.indexOf(qNoAt) !== -1) return true;
+
+  // last resort: word-boundary regex (ensure we match whole token)
+  try {
+    const rx = new RegExp('\\b' + qNoAt.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'i');
+    if(rx.test(c)) return true;
+  } catch(e){ /* ignore */ }
+
+  return false;
 }
 
-/* --- Render status badge --- */
-function renderStatusBadge(text, statusColorMap){
-  if(!text) return '';
-  const label = String(text).trim();
-  const mapped = findMappedColorForStatus(label, statusColorMap);
-  const bg = mapped || '#e6e6e6';
-  const txtColor = pickTextColorOnBackground(bg);
-  return `<span class="status-badge" style="background:${bg}; color:${txtColor}">${escapeHtml(label)}</span>`;
-}
-
-/* --- Render table and summary --- */
+/* render table */
 function renderResults(rows, headers, statusColorMap){
   showLoading(false);
-  if(!rows || rows.length === 0){
-    document.getElementById('output').innerHTML = `<div class="row justify-content-center"><div class="col-4"><div class='box-cute alert alert-warning text-center'>ไม่พบข้อมูลของบัญชีนี้ กรุณาตรวจสอบอีกครั้ง</div></div></div>`;
+  if(!rows || rows.length===0){
+    document.getElementById('output').innerHTML = `<div class="row justify-content-center"><div class="col-6"><div class='box-cute alert alert-warning text-center'>ไม่พบข้อมูลของบัญชีนี้ กรุณาตรวจสอบอีกครั้ง</div></div></div>`;
     return;
   }
 
-  // compute totals as before (defensive column names)
-  let pickupTotal = 0, ecoShippingTotal = 0;
-  rows.forEach(r => {
-    const statusText = (r['สถานะ'] || r['status'] || r['status_text'] || '').toString();
+  let pickupTotal = 0, ecoShippingTotal=0;
+  rows.forEach(r=>{
+    const statusText = (r['สถานะ']||r['status']||r['status_text']||'').toString();
     if(statusText && statusText.indexOf('ถึงไทยแล้ว') !== -1){
-      const sendBack = parseFloat((r['ค่าส่งกลับไทย'] || r['sendback'] || r['col5'] || '').toString().replace(/,/g,'')) || 0;
-      const eco = parseFloat((r['ค่าส่งไปร'] || r['eco'] || r['col6'] || '').toString().replace(/,/g,'')) || 0;
+      const sendBack = parseFloat((r['ค่าส่งกลับไทย']||r['sendback']||r['col5']||'').toString().replace(/,/g,'')) || 0;
+      const eco = parseFloat((r['ค่าส่งไปร']||r['eco']||r['col6']||'').toString().replace(/,/g,'')) || 0;
       pickupTotal += sendBack;
       ecoShippingTotal += (sendBack + eco);
     }
@@ -384,17 +243,16 @@ function renderResults(rows, headers, statusColorMap){
   </div>
   `;
 
-  // decide visible headers (robust: fallback to positions)
   const visibleHeaders = [
-    headers[0] || 'col0',  // แอค
-    headers[1] || 'col1',  // ประเภท
-    headers[2] || 'col2',  // รายการ
-    headers[3] || 'col3',  // ราคา
-    headers[5] || 'col5',  // ค่าส่งกลับไทย
-    headers[6] || 'col6',  // ค่าส่งไปร
-    headers[10]|| 'col10', // เว็บส่ง
-    headers[8] || 'col8',  // สถานะ
-    headers[9] || 'col9'   // เลขแทร็ค
+    headers[0] || 'col0',
+    headers[1] || 'col1',
+    headers[2] || 'col2',
+    headers[3] || 'col3',
+    headers[5] || 'col5',
+    headers[6] || 'col6',
+    headers[10]|| 'col10',
+    headers[8] || 'col8',
+    headers[9] || 'col9'
   ];
 
   let table = `<table class="table table-bordered table-rounded"><thead><tr>
@@ -409,147 +267,141 @@ function renderResults(rows, headers, statusColorMap){
       <th class="text-center">เลขแทร็ค</th>
     </tr></thead><tbody>`;
 
-    rows.forEach(r => {
-      table += '<tr>';
-      visibleHeaders.forEach((h, idx) => {
-        const val = r[h] || '';
-
-        if (idx === 7) {
-          // สถานะ (badge)
-          table += `<td class="text-center">${renderStatusBadge(val, statusColorMap)}</td>`;
-          return;
-        }
-
-        if (idx === 2) {
-          // คอลัมน์ "รายการของ" — แสดง newlines ตามต้นฉบับ (ปลอดภัยด้วย escapeHtml)
-          const safe = escapeHtml(val);
-          table += `<td class="preserve-newlines">${safe}</td>`;
-          return;
-        }
-
-        // ช่องปกติ
-        table += `<td class="${idx === 2 ? 'text-start' : ''}">${escapeHtml(val)}</td>`;
-      });
-      table += '</tr>';
+  rows.forEach(r=>{
+    table += '<tr>';
+    visibleHeaders.forEach((h, idx)=>{
+      const val = r[h] || '';
+      if(idx === 7){
+        table += `<td class="text-center">${renderStatusBadge(val, statusColorMap)}</td>`;
+        return;
+      }
+      if(idx === 2){
+        const safe = escapeHtml(val);
+        table += `<td class="preserve-newlines">${safe}</td>`;
+        return;
+      }
+      table += `<td class="${idx===2?'text-start':''}">${escapeHtml(val)}</td>`;
     });
+    table += '</tr>';
+  });
 
   table += '</tbody></table>';
   document.getElementById('output').innerHTML = summaryBox + table;
 }
-</script>
-<script>
-/* =========== Part 3: main handler + wiring + debug logs =========== */
 
-async function handleSearch() {
+/* MAIN handler */
+async function handleSearch(){
   const uidRaw = (document.getElementById('userId').value || '').trim();
-  if (!uidRaw) {
-    alert('กรุณากรอกชื่อบัญชี Twitter ก่อน');
-    return;
-  }
+  if(!uidRaw){ alert('กรุณากรอกชื่อบัญชี Twitter ก่อน'); return; }
   const uid = uidRaw.toLowerCase();
 
-  try {
+  try{
     showLoading(true);
     document.getElementById('output').innerHTML = '';
     document.getElementById('log').style.display = 'none';
     document.getElementById('log').textContent = '';
 
-    // Fetch status sheet first (we want mapping for colors)
+    // load status color map
     let statusColorMap = {};
-    try {
+    try{
       const statusG = await fetchGviz(STATUS_SHEET_NAME);
       const statusRows = gvizToArrayRows(statusG).rows;
       statusColorMap = buildStatusColorMapFromRows(statusRows);
       showLog('Loaded status mapping (' + Object.keys(statusColorMap).length + ' keys)');
-    } catch (e) {
-      console.warn('Failed to load status sheet via gviz:', e && e.message);
-      showLog('Failed to load status sheet: ' + (e && e.message));
+    }catch(e){
+      showLog('Failed to load status sheet via gviz: ' + (e && e.message));
     }
 
-    // Try GViz for data first
-    let headers = [], rows = [];
-    try {
+    // try GViz
+    let headers=[], rows=[];
+    let usedGViz = false;
+    try{
       const dataG = await fetchGviz(DATA_SHEET_NAME);
-      const tmp = buildRowsFromGvizObj(dataG);
-      headers = tmp.headers;
-      rows = tmp.rows || [];
-      if (!rows.length) throw new Error('GViz returned 0 rows (may be filtered)');
+      const built = buildRowsFromGvizObj(dataG);
+      headers = built.headers; rows = built.rows || [];
+      usedGViz = true;
       showLog('Using GViz for data (rows=' + rows.length + ')');
-    } catch (gvizErr) {
-      // fallback to CSV (gid)
-      showLog('GViz failed or returned no rows — fallback to CSV (gid=' + DATA_SHEET_GID + ')');
-      try {
+    }catch(gvizErr){
+      showLog('GViz failed: ' + (gvizErr && gvizErr.message));
+    }
+
+    // if GViz gave 0 rows, fallback to CSV
+    if(!rows || rows.length === 0){
+      showLog('GViz returned 0 rows or failed — trying CSV fallback (gid=' + DATA_SHEET_GID + ')');
+      try{
         const csvRows = await fetchCsvByGid(DATA_SHEET_GID);
         const csvObj = csvRowsToObjects(csvRows);
         headers = csvObj.headers;
         rows = csvObj.rows || [];
-        showLog('Loaded CSV fallback (rows=' + rows.length + ')');
-      } catch (csvErr) {
-        console.error('CSV fallback also failed', csvErr);
+        showLog('CSV fallback loaded (rows=' + rows.length + ')');
+      }catch(csvErr){
         throw new Error('ทั้ง GViz และ CSV fallback ล้มเหลว: ' + (csvErr && csvErr.message ? csvErr.message : csvErr));
       }
     }
 
-    // Filter rows by column 'แอค' only (robust)
-    const targetHeaderName = 'แอค';
+    // find header for 'แอค'
+    const targetHeader = 'แอค';
     let usernameKey = null;
-    if (Array.isArray(headers)) {
-      for (const h of headers) {
-        if (!h) continue;
-        if (h.toString().trim() === targetHeaderName) { usernameKey = h; break; }
-      }
-      if (!usernameKey) { usernameKey = headers[0] || 'col0'; showLog(`Header '${targetHeaderName}' not found — using ${usernameKey}`); }
+    if(Array.isArray(headers)){
+      for(const h of headers){ if(h && h.toString().trim() === targetHeader){ usernameKey = h; break; } }
+      if(!usernameKey){ usernameKey = headers[0] || 'col0'; showLog(`Header '${targetHeader}' not found — using ${usernameKey}`); }
       else showLog('Using header: ' + usernameKey);
-    } else {
-      usernameKey = 'col0';
-    }
+    } else usernameKey = 'col0';
 
-    const filtered = rows.filter(r => {
-      const cell = (r[usernameKey] || '');
-      if (!cell) return false;
-      const s = String(cell).trim().toLowerCase();
-      if (s === uid) return true;
-      if (s === ('@' + uid)) return true;
-      if (('@' + s) === uid) return true;
-      if (s.indexOf(uid) !== -1) return true; // contains
-      return false;
+    // show sample first 6 cell values to debug
+    const sampleCells = rows.slice(0,6).map(r => r[usernameKey] || '').slice(0,6);
+    showLog('Sample values from column ['+usernameKey+']: ' + JSON.stringify(sampleCells));
+
+    // filter robustly (accountMatchesCell)
+    const filtered = rows.filter(r=>{
+      const cell = r[usernameKey] || '';
+      return accountMatchesCell(uidRaw, cell);
     });
 
     showLog('Filtered rows count: ' + filtered.length);
 
-    // Render results
+    // If filtered is empty, try looser: check each row's ANY column contains uid (fallback)
+    if(filtered.length === 0){
+      showLog('No matches by strict account match — trying loose contains across all columns');
+      const alt = rows.filter(r=>{
+        for(const k of Object.keys(r)){
+          const cell = r[k] || '';
+          if(!cell) continue;
+          if(normalizeForMatch(String(cell)).indexOf(normalizeForMatch(uidRaw)) !== -1) return true;
+          if(normalizeForMatch(String(cell)).indexOf(normalizeForMatch(stripAt(uidRaw))) !== -1) return true;
+        }
+        return false;
+      });
+      showLog('Loose matches count: ' + alt.length);
+      if(alt.length > 0){
+        renderResults(alt, headers, statusColorMap);
+        return;
+      }
+    }
+
+    // Render using filtered (may be empty -> renderResults will show not found)
     renderResults(filtered, headers, statusColorMap);
 
-  } catch (err) {
-    console.error('handleSearch error', err);
+  }catch(err){
+    console.error(err);
     document.getElementById('output').innerHTML = `<div class='box-cute alert alert-danger text-center'>โหลดข้อมูลล้มเหลว: ${escapeHtml(err && err.message ? err.message : err)}</div>`;
     showLog('error: ' + (err && err.stack ? err.stack : err));
-  } finally {
+  }finally{
     showLoading(false);
   }
 }
 
-/* Wire events */
+/* wire */
 document.getElementById('searchBtn').addEventListener('click', handleSearch);
-document.getElementById('userId').addEventListener('keydown', function(e){
-  if (e.key === 'Enter') handleSearch();
-});
+document.getElementById('userId').addEventListener('keydown', function(e){ if(e.key === 'Enter') handleSearch(); });
 
-/* Optional: prefill userId from query param (e.g. ?user=@zomday2) and auto-search */
-(function autoPrefillFromQuery(){
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const q = params.get('user') || params.get('uid') || params.get('u');
-    if (q) {
-      document.getElementById('userId').value = q;
-      // small delay so UI shows before running
-      setTimeout(() => {
-        handleSearch();
-      }, 200);
-    }
-  } catch (e) { /* ignore */ }
+(function autoPrefill(){
+  try{
+    const p = new URLSearchParams(window.location.search);
+    const q = p.get('user') || p.get('uid') || p.get('u');
+    if(q){ document.getElementById('userId').value = q; setTimeout(handleSearch,200); }
+  }catch(e){}
 })();
 </script>
-
 </body>
 </html>
